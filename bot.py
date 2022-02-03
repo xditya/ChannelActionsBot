@@ -6,7 +6,7 @@ import logging
 
 from redis import Redis
 from decouple import config
-from telethon import TelegramClient, events, Button, types, functions
+from telethon import TelegramClient, events, Button, types, functions, errors
 
 logging.basicConfig(
     level=logging.INFO, format="[%(levelname)s] %(asctime)s - %(message)s"
@@ -136,6 +136,7 @@ async def settings_selctor(event):
     id = event.fwd_from.from_id
     if not isinstance(id, types.PeerChannel):
         await event.reply("Looks like this isn't from a channel!")
+        return
     try:
         chat = await bot.get_entity(id)
         if chat.admin_rights is None:
@@ -147,17 +148,24 @@ async def settings_selctor(event):
 
     # check if the guy trying to change settings is an admin
 
-    who_u = (
-        await bot(
-            functions.channels.GetParticipantRequest(
-                channel=chat.id,
-                participant=event.sender_id,
+    try:
+        who_u = (
+            await bot(
+                functions.channels.GetParticipantRequest(
+                    channel=chat.id,
+                    participant=event.sender_id,
+                )
             )
+        ).participant
+    except errors.rpcerrorlist.UserNotParticipantError:
+        await event.reply(
+            "You are not in the channel, or an admin, to perform this action."
         )
-    ).participant
+        return
     if not (
-        isinstance(who_u, types.ChannelParticipantCreator)
-        or (isinstance(who_u, types.ChannelParticipantAdmin))
+        isinstance(
+            who_u, (types.ChannelParticipantCreator, types.ChannelParticipantAdmin)
+        )
     ):
         await event.reply(
             "You are not an admin of this channel and cannot change it's settings!"
@@ -208,12 +216,28 @@ async def approver(event):
     chat = event.peer.channel_id
     chat_settings = db.get("CHAT_SETTINGS") or "{}"
     chat_settings = eval(chat_settings)
-    appr = bool(chat_settings.get(str(chat)) is None or "Auto-Approve")
-    await bot(
-        functions.messages.HideChatJoinRequestRequest(
-            approved=appr, peer=chat, user_id=event.user_id
-        )
+    who = await bot.get_entity(event.user_id)
+    chat_ = await bot.get_entity(chat)
+    if chat_settings.get(str(chat)) == "Auto-Approve":
+        appr = True
+        dn = "approved!"
+    elif chat_settings.get(str(chat)) == "Auto-Disapprove":
+        appr = False
+        dn = "disapproved :("
+    await bot.send_message(
+        event.user_id,
+        "Hello {}, your request to join {} has been {}\n\nSend /start to know more.".format(
+            who.first_name, chat_.title, dn
+        ),
     )
+    try:
+        await bot(
+            functions.messages.HideChatJoinRequestRequest(
+                approved=appr, peer=chat, user_id=event.user_id
+            )
+        )
+    except errors.rpcerrorlist.UserAlreadyParticipantError:
+        pass
 
 
 @bot.on(events.NewMessage(incoming=True, from_users=AUTH, pattern="^/stats$"))

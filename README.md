@@ -21,4 +21,4 @@ Can be found on telegram as [@ChannelActionsBot](https://t.me/ChannelActionsBot)
 ## Credits
 
 - [Me](https://xditya.me) for this bot.
-- Devesh, for his [fork of telethon](./requirements.txt#1).
+- Devesh, for his [fork of telethon](./requirements.txt#L1).
