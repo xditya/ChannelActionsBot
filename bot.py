@@ -1,6 +1,7 @@
 # @ChannelActionsBot
 # (c) @xditya.
 
+import contextlib
 import re
 import logging
 
@@ -46,7 +47,7 @@ def str_to_list(text):  # Returns List
     return text.split(" ")
 
 
-def list_to_str(list):  # Returns String
+def list_to_str(list):  # Returns String  # sourcery skip: avoid-builtin-shadow
     str = "".join(f"{x} " for x in list)
     return str.strip()
 
@@ -59,6 +60,7 @@ def is_added(var, id):  # Take int or str with numbers only , Returns Boolean
 
 
 def add_to_db(var, id):  # Take int or str with numbers only , Returns Boolean
+    # sourcery skip: avoid-builtin-shadow
     id = str(id)
     if not id.isdigit():
         return False
@@ -73,16 +75,13 @@ def add_to_db(var, id):  # Take int or str with numbers only , Returns Boolean
 
 def get_all(var):  # Returns List
     users = db.get(var)
-    if users is None or users == "":
-        return [""]
-    else:
-        return str_to_list(users)
+    return [""] if users is None or users == "" else str_to_list(users)
 
 
 async def get_me():
     me = await bot.get_me()
     myname = me.username
-    return "@" + myname
+    return f"@{myname}"
 
 
 bot_username = bot.loop.run_until_complete(get_me())
@@ -132,7 +131,7 @@ async def helper(event):
 
 
 @bot.on(events.NewMessage(incoming=True, func=lambda e: e.is_private and e.fwd_from))
-async def settings_selctor(event):
+async def settings_selctor(event):  # sourcery skip: avoid-builtin-shadow
     id = event.fwd_from.from_id
     if not isinstance(id, types.PeerChannel):
         await event.reply("Looks like this isn't from a channel!")
@@ -180,13 +179,8 @@ async def settings_selctor(event):
             title=chat.title, set=setting
         ),
         buttons=[
-            [Button.inline("Auto-Approve", data="set_ap_{}".format(chat.id))],
-            [
-                Button.inline(
-                    "Auto-Disapprove",
-                    data="set_disap_{}".format(chat.id),
-                )
-            ],
+            [Button.inline("Auto-Approve", data=f"set_ap_{chat.id}")],
+            [Button.inline("Auto-Disapprove", data=f"set_disap_{chat.id}")],
         ],
     )
 
@@ -205,9 +199,7 @@ async def settings(event):
         added_chats.update({chat: op})
     db.set("CHAT_SETTINGS", str(added_chats))
     await event.edit(
-        "Settings updated! New members in the channel `{}` will be {}d!".format(
-            chat, op
-        )
+        f"Settings updated! New members in the channel `{chat}` will be {op}d!"
     )
 
 
@@ -218,6 +210,7 @@ async def approver(event):
     chat_settings = eval(chat_settings)
     who = await bot.get_entity(event.user_id)
     chat_ = await bot.get_entity(chat)
+    dn = "approved!"
     if chat_settings.get(str(chat)) == "Auto-Approve":
         appr = True
         dn = "approved!"
@@ -226,18 +219,16 @@ async def approver(event):
         dn = "disapproved :("
     await bot.send_message(
         event.user_id,
-        "Hello {}, your request to join {} has been {}\n\nSend /start to know more.".format(
+        "Hello {}, your request to join {} has been {}\nSend /start to know more.\n\n__**Powered by @BotzHub**__".format(
             who.first_name, chat_.title, dn
         ),
     )
-    try:
+    with contextlib.suppress(errors.rpcerrorlist.UserAlreadyParticipantError):
         await bot(
             functions.messages.HideChatJoinRequestRequest(
                 approved=appr, peer=chat, user_id=event.user_id
             )
         )
-    except errors.rpcerrorlist.UserAlreadyParticipantError:
-        pass
 
 
 @bot.on(events.NewMessage(incoming=True, from_users=AUTH, pattern="^/stats$"))
@@ -245,25 +236,33 @@ async def auth_(event):
     t = db.get("CHAT_SETTINGS") or "{}"
     t = eval(t)
     await event.reply(
-        "**Bot stats**\n\nUsers: {}\nGroups added: {}".format(
+        "**ChannelActionsBot Stats**\n\nUsers: {}\nGroups added (with modified settings): {}".format(
             len(get_all("BOTUSERS")), len(t.keys())
         )
     )
 
 
-@bot.on(events.NewMessage(incoming=True, from_users=AUTH, pattern="^/broadcast ?(.*)"))
+@bot.on(events.NewMessage(incoming=True, from_users=AUTH, pattern="^/broadcast$"))
 async def broad(e):
-    msg = e.pattern_match.group(1)
-    if not msg:
-        return await e.reply("Please use `/broadcast a_message_here`")
+    if not e.reply_to_msg_id:
+        return await e.reply(
+            "Please use `/broadcast` as reply to the message you want to broadcast."
+        )
+    msg = await e.get_reply_message()
     xx = await e.reply("In progress...")
     users = get_all("BOTUSERS")
     done = error = 0
     for i in users:
         try:
-            await bot.send_message(int(i), msg)
+            await bot.send_message(
+                int(i),
+                msg.text,
+                file=msg.media,
+                buttons=msg.buttons,
+                link_preview=False,
+            )
             done += 1
-        except:
+        except Exception:
             error += 1
     await xx.edit("Broadcast completed.\nSuccess: {}\nFailed: {}".format(done, error))
 
