@@ -211,6 +211,7 @@ async def approver(event):
     who = await bot.get_entity(event.user_id)
     chat_ = await bot.get_entity(chat)
     dn = "approved!"
+    appr = True
     if chat_settings.get(str(chat)) == "Auto-Approve":
         appr = True
         dn = "approved!"
