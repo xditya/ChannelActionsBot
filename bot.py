@@ -218,12 +218,13 @@ async def approver(event):
     elif chat_settings.get(str(chat)) == "Auto-Disapprove":
         appr = False
         dn = "disapproved :("
-    await bot.send_message(
-        event.user_id,
-        "Hello {}, your request to join {} has been {}\nSend /start to know more.\n\n__**Powered by @BotzHub**__".format(
-            who.first_name, chat_.title, dn
-        ),
-    )
+    with contextlib.suppress(errors.rpcerrorlist.UserIsBlockedError):
+        await bot.send_message(
+            event.user_id,
+            "Hello {}, your request to join {} has been {}\nSend /start to know more.\n\n__**Powered by @BotzHub**__".format(
+                who.first_name, chat_.title, dn
+            ),
+        )
     with contextlib.suppress(errors.rpcerrorlist.UserAlreadyParticipantError):
         await bot(
             functions.messages.HideChatJoinRequestRequest(
