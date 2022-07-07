@@ -102,14 +102,14 @@ start_buttons = [
 
 @bot.on(events.NewMessage(incoming=True, pattern=f"^/start({bot_username})?$"))
 async def starters(event):
-    if not is_added("BOTUSERS", event.sender_id):
-        add_to_db("BOTUSERS", event.sender_id)
     from_ = await bot.get_entity(event.sender_id)
     await event.reply(
         start_msg.format(user=from_.first_name),
         buttons=start_buttons,
         link_preview=False,
     )
+    if not is_added("BOTUSERS", event.sender_id):
+        add_to_db("BOTUSERS", event.sender_id)
 
 
 @bot.on(events.CallbackQuery(data="start"))
@@ -234,9 +234,10 @@ async def approver(event):
 
 @bot.on(events.NewMessage(incoming=True, from_users=AUTH, pattern="^/stats$"))
 async def auth_(event):
+    xx = await event.reply("Calculating...")
     t = db.get("CHAT_SETTINGS") or "{}"
     t = eval(t)
-    await event.reply(
+    await xx.edit(
         "**ChannelActionsBot Stats**\n\nUsers: {}\nGroups added (with modified settings): {}".format(
             len(get_all("BOTUSERS")), len(t.keys())
         )
