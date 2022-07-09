@@ -5,7 +5,7 @@ import contextlib
 import re
 import logging
 
-from redis import Redis
+from aioredis import Redis
 from decouple import config
 from telethon import TelegramClient, events, Button, types, functions, errors
 
@@ -52,20 +52,20 @@ def list_to_str(list):  # Returns String  # sourcery skip: avoid-builtin-shadow
     return str.strip()
 
 
-def is_added(var, id):  # Take int or str with numbers only , Returns Boolean
+async def is_added(var, id):  # Take int or str with numbers only , Returns Boolean
     if not str(id).isdigit():
         return False
-    users = get_all(var)
+    users = await get_all(var)
     return str(id) in users
 
 
-def add_to_db(var, id):  # Take int or str with numbers only , Returns Boolean
+async def add_to_db(var, id):  # Take int or str with numbers only , Returns Boolean
     # sourcery skip: avoid-builtin-shadow
     id = str(id)
     if not id.isdigit():
         return False
     try:
-        users = get_all(var)
+        users = await get_all(var)
         users.append(id)
         db.set(var, list_to_str(users))
         return True
@@ -73,7 +73,7 @@ def add_to_db(var, id):  # Take int or str with numbers only , Returns Boolean
         return False
 
 
-def get_all(var):  # Returns List
+async def get_all(var):  # Returns List
     users = db.get(var)
     return [""] if users is None or users == "" else str_to_list(users)
 
@@ -108,8 +108,8 @@ async def starters(event):
         buttons=start_buttons,
         link_preview=False,
     )
-    if not is_added("BOTUSERS", event.sender_id):
-        add_to_db("BOTUSERS", event.sender_id)
+    if not (await is_added("BOTUSERS", event.sender_id)):
+        await add_to_db("BOTUSERS", event.sender_id)
 
 
 @bot.on(events.CallbackQuery(data="start"))
@@ -240,7 +240,7 @@ async def auth_(event):
     t = eval(t)
     await xx.edit(
         "**ChannelActionsBot Stats**\n\nUsers: {}\nGroups added (with modified settings): {}".format(
-            len(get_all("BOTUSERS")), len(t.keys())
+            len(await get_all("BOTUSERS")), len(t.keys())
         )
     )
 
@@ -253,7 +253,7 @@ async def broad(e):
         )
     msg = await e.get_reply_message()
     xx = await e.reply("In progress...")
-    users = get_all("BOTUSERS")
+    users = await get_all("BOTUSERS")
     done = error = 0
     for i in users:
         try:
