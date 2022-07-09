@@ -115,11 +115,12 @@ async def starters(event):
 @bot.on(events.CallbackQuery(data="start"))
 async def start_in(event):
     from_ = await bot.get_entity(event.sender_id)
-    await event.edit(
-        start_msg.format(user=from_.first_name),
-        buttons=start_buttons,
-        link_preview=False,
-    )
+    with contextlib.suppress(errors.rpcerrorlist.MessageNotModifiedError):
+        await event.edit(
+            start_msg.format(user=from_.first_name),
+            buttons=start_buttons,
+            link_preview=False,
+        )
 
 
 @bot.on(events.CallbackQuery(data="helper"))
@@ -218,7 +219,9 @@ async def approver(event):
     elif chat_settings.get(str(chat)) == "Auto-Disapprove":
         appr = False
         dn = "disapproved :("
-    with contextlib.suppress(errors.rpcerrorlist.UserIsBlockedError):
+    with contextlib.suppress(
+        errors.rpcerrorlist.UserIsBlockedError, errors.rpcerrorlist.PeerIdInvalidError
+    ):
         await bot.send_message(
             event.user_id,
             "Hello {}, your request to join {} has been {}\nSend /start to know more.\n\n__**Powered by @BotzHub**__".format(
