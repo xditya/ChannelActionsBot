@@ -67,14 +67,14 @@ async def add_to_db(var, id):  # Take int or str with numbers only , Returns Boo
     try:
         users = await get_all(var)
         users.append(id)
-        db.set(var, list_to_str(users))
+        await db.set(var, list_to_str(users))
         return True
     except Exception as e:
         return False
 
 
 async def get_all(var):  # Returns List
-    users = db.get(var)
+    users = await db.get(var)
     return [""] if users is None or users == "" else str_to_list(users)
 
 
@@ -172,7 +172,7 @@ async def settings_selctor(event):  # sourcery skip: avoid-builtin-shadow
         )
         return
 
-    added_chats = db.get("CHAT_SETTINGS") or "{}"
+    added_chats = await db.get("CHAT_SETTINGS") or "{}"
     added_chats = eval(added_chats)
     setting = added_chats.get(str(chat.id)) or "Auto-Approve"
     await event.reply(
@@ -190,7 +190,7 @@ async def settings_selctor(event):  # sourcery skip: avoid-builtin-shadow
 async def settings(event):
     args = event.pattern_match.group(1).decode("utf-8")
     setting, chat = args.split("_")
-    added_chats = db.get("CHAT_SETTINGS") or "{}"
+    added_chats = await db.get("CHAT_SETTINGS") or "{}"
     added_chats = eval(added_chats)
     if setting == "ap":
         op = "Auto-Approve"
@@ -198,7 +198,7 @@ async def settings(event):
     elif setting == "disap":
         op = "Auto-Disapprove"
         added_chats.update({chat: op})
-    db.set("CHAT_SETTINGS", str(added_chats))
+    await db.set("CHAT_SETTINGS", str(added_chats))
     await event.edit(
         f"Settings updated! New members in the channel `{chat}` will be {op}d!"
     )
@@ -207,7 +207,7 @@ async def settings(event):
 @bot.on(events.Raw(types.UpdateBotChatInviteRequester))
 async def approver(event):
     chat = event.peer.channel_id
-    chat_settings = db.get("CHAT_SETTINGS") or "{}"
+    chat_settings = await db.get("CHAT_SETTINGS") or "{}"
     chat_settings = eval(chat_settings)
     who = await bot.get_entity(event.user_id)
     chat_ = await bot.get_entity(chat)
@@ -239,7 +239,7 @@ async def approver(event):
 @bot.on(events.NewMessage(incoming=True, from_users=AUTH, pattern="^/stats$"))
 async def auth_(event):
     xx = await event.reply("Calculating...")
-    t = db.get("CHAT_SETTINGS") or "{}"
+    t = await db.get("CHAT_SETTINGS") or "{}"
     t = eval(t)
     await xx.edit(
         "**ChannelActionsBot Stats**\n\nUsers: {}\nGroups added (with modified settings): {}".format(
