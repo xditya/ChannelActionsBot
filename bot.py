@@ -87,7 +87,7 @@ async def get_me():
 bot_username = bot.loop.run_until_complete(get_me())
 start_msg = """Hi {user}!
 
-**I'm a channel actions bot, mainly focused on working with the new [admin approval invite links](https://t.me/telegram/153).**
+**I'm Channel Actions Bot, a bot mainly focused on working with the new [admin approval invite links](https://t.me/telegram/153).**
 
 **__I can__**:
 - __Auto approve new join requests.__
@@ -174,14 +174,17 @@ async def settings_selctor(event):  # sourcery skip: avoid-builtin-shadow
 
     added_chats = await db.get("CHAT_SETTINGS") or "{}"
     added_chats = eval(added_chats)
+    welcome_msg = eval(await db.get("WELCOME_MSG") or "{}")
+    is_modded = bool(welcome_msg.get(chat.id))
     setting = added_chats.get(str(chat.id)) or "Auto-Approve"
     await event.reply(
-        "**Settings for {title}**\n\nSelect what to do on new join requests.\n\n**Current setting** - __{set}__".format(
-            title=chat.title, set=setting
+        "**Settings for {title}**\n\n__Select what to do on new join requests:__\n**Current setting** - __{set}__\n\n__Set your welcome message:__\nCurrently modified: {is_modded}".format(
+            title=chat.title, set=setting, is_modded=is_modded
         ),
         buttons=[
             [Button.inline("Auto-Approve", data=f"set_ap_{chat.id}")],
             [Button.inline("Auto-Disapprove", data=f"set_disap_{chat.id}")],
+            [Button.inline("Set Welcome Message", data=f"mod_{chat.id}")],
         ],
     )
 
@@ -204,11 +207,40 @@ async def settings(event):
     )
 
 
+@bot.on(events.CallbackQuery(data=re.compile("mod_(.*)")))
+async def mod_welcome(event):
+    args = int(event.pattern_match.group(1).decode("utf-8"))
+    welcome_msg = eval(await db.get("WELCOME_MSG") or "{}")
+    await event.delete()
+    async with bot.conversation(event.sender_id) as conv:
+        await conv.send_message(
+            "Send the new welcome message you want to be sent to a user when he is approved into your channel.\nAvailable formattings:\n- {name} - users name.\n- {chat} - chat title.",
+            buttons=Button.force_reply(),
+        )
+        msg = await conv.get_reply()
+        if not msg.text:
+            await event.reply("You can only set a text message!")
+            return
+        msg = msg.text
+        welcome_msg.update({args: msg})
+        await db.set("WELCOME_MSG", str(welcome_msg))
+        chat = await bot.get_entity(args)
+        await conv.send_message(
+            f"Welcome message for {chat.title} has been successfully set!"
+        )
+
+
 @bot.on(events.Raw(types.UpdateBotChatInviteRequester))
 async def approver(event):
     chat = event.peer.channel_id
     chat_settings = await db.get("CHAT_SETTINGS") or "{}"
     chat_settings = eval(chat_settings)
+    welcome_msg = eval(await db.get("WELCOME_MSG") or "{}")
+    chat_welcome = (
+        welcome_msg.get(chat)
+        or "Hello {name}, your request to join {chat} has been {dn}"
+    )
+    chat_welcome += "\nSend /start to know more."  # \n\n__**Powered by @BotzHub**__"
     who = await bot.get_entity(event.user_id)
     chat_ = await bot.get_entity(chat)
     dn = "approved!"
@@ -224,9 +256,8 @@ async def approver(event):
     ):
         await bot.send_message(
             event.user_id,
-            "Hello {}, your request to join {} has been {}\nSend /start to know more.\n\n__**Powered by @BotzHub**__".format(
-                who.first_name, chat_.title, dn
-            ),
+            chat_welcome.format(name=who.first_name, chat=chat_.title, dn=dn),
+            buttons=Button.url("Updates", url="https://t.me/BotzHub"),
         )
     with contextlib.suppress(errors.rpcerrorlist.UserAlreadyParticipantError):
         await bot(
