@@ -1,0 +1,20 @@
+name: Telegram Notifications
+on:
+  push:
+  workflow_dispatch:
+  issues:
+    types: [opened, edited, deleted, reopened, locked, unlocked]
+  issue_comment:
+    types: [created, deleted]
+  pull_request:
+    types: [opened, reopened, closed, locked, unlocked]
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Telegram Notifications for Actions on GitHub
+        uses: EverythingSuckz/github-telegram-notify@main
+        with:
+          bot_token: '${{ secrets.BOT_TOKEN }}'
+          chat_id: '${{ secrets.CHAT_ID }}'
