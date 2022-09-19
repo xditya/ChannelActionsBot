@@ -154,15 +154,15 @@ bot.callbackQuery(/settings_page_(.*)/, async (ctx) => {
   const chatInfo = await bot.api.getChat(Number(chat));
   if (chatInfo.type == "private") return;
   const current_settings = await getSettings(Number(chat));
-
+  let autoappr;
+  if (current_settings == null) autoappr = true;
+  else autoappr = current_settings.status;
   const settings_buttons = new InlineKeyboard()
     .text("Approve New Members", `approve_${chat}`).row()
     .text("Decline New Members", `decline_${chat}`).row()
     .text("Custom Welcome Message", `welcome_${chat}`);
   await ctx.editMessageText(
-    `*Settings for ${chatInfo.title}*\n\nCurrent settings:\nAutoApprove: ${
-      current_settings.status ?? true
-    }`,
+    `*Settings for ${chatInfo.title}*\n\nCurrent settings:\nAutoApprove: ${autoappr}`,
     {
       reply_markup: settings_buttons,
       parse_mode: "Markdown",
