@@ -134,7 +134,7 @@ bot
     const current_settings = await getSettings(chat);
     let autoappr;
     if (current_settings == null) autoappr = true;
-    else autoappr = current_settings.status;
+    else autoappr = current_settings.status ?? true;
     const settings_buttons = new InlineKeyboard()
       .text("Approve New Members", `approve_${chat}`).row()
       .text("Decline New Members", `decline_${chat}`).row()
@@ -156,7 +156,7 @@ bot.callbackQuery(/settings_page_(.*)/, async (ctx) => {
   const current_settings = await getSettings(Number(chat));
   let autoappr;
   if (current_settings == null) autoappr = true;
-  else autoappr = current_settings.status;
+  else autoappr = current_settings.status ?? true;
   const settings_buttons = new InlineKeyboard()
     .text("Approve New Members", `approve_${chat}`).row()
     .text("Decline New Members", `decline_${chat}`).row()
@@ -169,6 +169,7 @@ bot.callbackQuery(/settings_page_(.*)/, async (ctx) => {
     },
   );
 });
+
 bot.callbackQuery(/approve_(.*)/, async (ctx) => {
   const chatID = ctx.match?.[1];
   if (chatID == undefined) return;
@@ -240,8 +241,19 @@ bot.on("chat_join_request", async (ctx) => {
   const def_welcome_decline =
     "Hey {name}, your request to join {chat} has been declined!";
 
-  if (settings == null) approve_or_not = true;
-  else approve_or_not = settings.status;
+  if (settings == null) {
+    approve_or_not = true;
+    welcome = def_welcome_approve;
+  } else {
+    approve_or_not = settings.status;
+    if (approve_or_not == true) {
+      welcome = settings.welcome ?? def_welcome_approve;
+      if (welcome == "") welcome = def_welcome_approve;
+    } else {
+      welcome = settings.welcome ?? def_welcome_decline;
+      if (welcome == "") welcome = def_welcome_decline;
+    }
+  }
 
   // try to approve
   try {
@@ -256,20 +268,17 @@ bot.on("chat_join_request", async (ctx) => {
     return;
   }
 
-  welcome = settings.welcome;
-  if (approve_or_not) {
-    if (welcome == "" || welcome == null) welcome = def_welcome_approve;
-  } else if (welcome == "" || welcome == null) welcome = def_welcome_decline;
   welcome += "\n\nSend /start to know more!";
+  welcome = welcome.replace("{name}", update.from.first_name).replace(
+    "{chat}",
+    update.chat.title,
+  );
 
   // try to send a message
   try {
     await bot.api.sendMessage(
       update.from.id,
-      welcome.replace("{name}", update.from.first_name).replace(
-        "{chat}",
-        update.chat.title,
-      ),
+      welcome,
     );
   } catch (error) {
     if (error.error_code == 403) return;
