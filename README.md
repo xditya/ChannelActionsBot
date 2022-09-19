@@ -2,17 +2,27 @@
 
 Can be found on telegram as [@ChannelActionsBot](https://t.me/ChannelActionsBot)!
 
-
 ## Features
 
 - Auto Approve new join requests
 - Auto Decline new join requets
+- Custom welcome messages.
 
 ## Deploy
 
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/xditya/ChannelActionsBot)
+### Local Hosting
+```
+git clone https://github.com/xditya/ChannelActions -b deno
+-- Make a .env file as in .env.sample ---
+deno task start
+```
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https%3A%2F%2Fgithub.com%2Fxditya%2FChannelActionsBot&plugins=redis&envs=BOT_TOKEN%2COWNERS&BOT_TOKENDesc=Bot+token%2C+from+%40BotFather&OWNERSDesc=User+IDs+of+users+who+own+the+bot%2C+split+by+space.&referralCode=xditya)
+### Deno Deploy
+1. Open [deno deploy](https://dash.deno.com/), create a new project.
+2. [Fork](https://github.com/xditya/ChannelActionsBot/fork) the `deno` branch of this repo.
+3. Search for this repo on deno deploy, set branch as deno, set file as `serverless.ts`
+4. Add your envirnoment vars and click "Link".
+5. Once done, open the deployment page, copy deployment URL, set your bots webhook using `https://api.telegram.org/bot<your_bot_token_here>/setWebhook?url=<deployment_url_here>.
 
 ## Support
 
@@ -21,4 +31,4 @@ Can be found on telegram as [@ChannelActionsBot](https://t.me/ChannelActionsBot)
 ## Credits
 
 - [Me](https://xditya.me) for this bot.
-- Devesh, for his [fork of telethon](./requirements.txt#L1).
+- [grammY](https://grammy.dev).
