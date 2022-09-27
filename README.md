@@ -31,6 +31,17 @@ deno task start
    webhook using
    `https://api.telegram.org/bot<your_bot_token_here>/setWebhook?url=<deployment_url_here>`.
 
+
+## Translating
+> The bot now has multi-language support. You can pr your local language to this repo!
+
+### How to translate?
+1. Go to the [locales folder](./locales).
+2. Open any folder, say [en.ftl](./locales/en.ftl).
+3. Copy the contents, make a new file under the locales directory, named `lang_code.ftl`, where `lang_code` is your language code. 
+4. Edit the text in the new file, save it and make a pull request to this repository. 
+5. Thats it! The pr will be tested and merged.
+   
 ## Support
 
 - Telegram, [@BotzHubChat](https://t.me/BotzHubChat)
