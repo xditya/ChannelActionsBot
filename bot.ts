@@ -23,6 +23,7 @@ import {
   HttpError,
   InlineKeyboard,
   session,
+  SessionFlavor,
 } from "grammy/mod.ts";
 import { hydrate, HydrateFlavor } from "hydrate";
 import {
@@ -31,13 +32,27 @@ import {
   conversations,
   createConversation,
 } from "conversations";
+import { I18n, I18nFlavor } from "i18n";
+import { freeStorage } from "https://deno.land/x/grammy_storages@v2.0.1/free/src/mod.ts";
 
-export type MyContext = HydrateFlavor<Context> & Context & ConversationFlavor;
+interface SessionData {
+  __language_code?: string;
+}
+export type MyContext = HydrateFlavor<
+  Context & SessionFlavor<SessionData> & I18nFlavor & ConversationFlavor
+>;
 type MyConversation = Conversation<MyContext>;
 
 export const bot = new Bot<MyContext>(config.BOT_TOKEN);
+const i18n = new I18n<MyContext>({
+  defaultLocale: "en",
+  useSession: true,
+  directory: "locales",
+});
+
 bot.use(hydrate());
-bot.use(session({ initial: () => ({}) }));
+bot.use(session({ initial: () => ({}), storage: freeStorage(bot.token) }));
+bot.use(i18n);
 bot.use(conversations());
 bot.use(createConversation(inputWelcomeMsg));
 
@@ -58,31 +73,22 @@ const owners: number[] = [];
 for (const owner of config.OWNERS.split(" ")) {
   owners.push(Number(owner));
 }
-const start_msg = `Hi {user}!
-*I'm Channel Actions Bot, a bot mainly focused on working with the new* [admin approval invite links](https://t.me/telegram/153).
 
-_I can_:
-- _Auto approve new join requests._
-- _Auto Decline New Join Requests._
-
-\`Click the below button to know how to use me!\``;
-
-const start_buttons = new InlineKeyboard()
-  .text("How to use me ❓", "helper").row()
-  .url("Updates", "https://t.me/BotzHub");
-
-const help_msg = `<b>Usage instructions.</b>
-    
-Add me to your channel as administrator, with "add users" permission, and forward me a message from that chat to set me up!
-
-To approve members who are already in waiting list, upgrade to premium for 3$ per month! Contact @xditya_bot if interested.`;
+bot.callbackQuery(/set_locale_(.*)/, async (ctx) => {
+  const i = ctx.match?.[0];
+  if (!i || i == undefined) return;
+  await ctx.editMessageText(`Locale changed to ${i}`);
+  await ctx.i18n.setLocale(i);
+});
 
 bot
   .chatType("private")
   .command("start", async (ctx) => {
-    await ctx.reply(start_msg.replace("{user}", ctx.from.first_name), {
-      parse_mode: "Markdown",
-      reply_markup: start_buttons,
+    await ctx.reply(ctx.t("start-msg", { user: ctx.from.first_name }), {
+      parse_mode: "HTML",
+      reply_markup: new InlineKeyboard()
+        .text(ctx.t("usage-help"), "helper").row()
+        .url(ctx.t("updates"), "https://t.me/BotzHub"),
       disable_web_page_preview: true,
     });
     await addUser(ctx.from.id);
@@ -90,7 +96,8 @@ bot
 
 bot.callbackQuery("helper", async (ctx) => {
   await ctx.editMessageText(
-    help_msg,
+    ctx.t("help") +
+      "\n\nTo approve members who are already in waiting list, upgrade to premium for 3$ per month! Contact @xditya_bot if interested.",
     {
       reply_markup: new InlineKeyboard().text("Main Menu 📭", "start"),
       parse_mode: "HTML",
@@ -101,11 +108,13 @@ bot.callbackQuery("helper", async (ctx) => {
 bot.callbackQuery("start", async (ctx) => {
   try {
     await ctx.editMessageText(
-      start_msg.replace("{user}", ctx.from.first_name),
+      ctx.t("start-msg", { user: ctx.from.first_name }),
       {
-        reply_markup: start_buttons,
+        reply_markup: new InlineKeyboard()
+          .text(ctx.t("usage-help"), "helper").row()
+          .url(ctx.t("updates"), "https://t.me/BotzHub"),
         disable_web_page_preview: true,
-        parse_mode: "Markdown",
+        parse_mode: "HTML",
       },
     );
   } catch (e) {
@@ -125,10 +134,10 @@ bot
     const res = await get_perms(bot, chat, ctx.from.id);
     if (res == null) {
       return await ctx.reply(
-        "Either I am not added in the chat as admin, or you are not an admin in the chat!",
+        ctx.t("no-perms"),
       );
     }
-    if (!res) return await ctx.reply("You are not an admin in the chat!");
+    if (!res) return await ctx.reply(ctx.t("not-admin"));
     const chatInfo = await bot.api.getChat(chat);
     if (chatInfo.type == "private") return;
     const current_settings = await getSettings(chat);
@@ -136,11 +145,14 @@ bot
     if (current_settings == null) autoappr = true;
     else autoappr = current_settings.status ?? true;
     const settings_buttons = new InlineKeyboard()
-      .text("Approve New Members", `approve_${chat}`).row()
-      .text("Decline New Members", `decline_${chat}`).row()
-      .text("Custom Welcome Message", `custom_welcome_${chat}`);
+      .text(ctx.t("btn-approve"), `approve_${chat}`).row()
+      .text(ctx.t("btn-disapprove"), `decline_${chat}`).row()
+      .text(ctx.t("btn-custom"), `welcome_${chat}`);
     await ctx.reply(
-      `*Settings for ${chatInfo.title}*\n\nCurrent settings:\nAutoApprove: ${autoappr}`,
+      ctx.t("chat-settings", {
+        title: chatInfo.title,
+        autoappr: autoappr.toString(),
+      }),
       {
         reply_markup: settings_buttons,
         parse_mode: "Markdown",
@@ -158,11 +170,14 @@ bot.callbackQuery(/settings_page_(.*)/, async (ctx) => {
   if (current_settings == null) autoappr = true;
   else autoappr = current_settings.status ?? true;
   const settings_buttons = new InlineKeyboard()
-    .text("Approve New Members", `approve_${chat}`).row()
-    .text("Decline New Members", `decline_${chat}`).row()
-    .text("Custom Welcome Message", `welcome_${chat}`);
+    .text(ctx.t("btn-approve"), `approve_${chat}`).row()
+    .text(ctx.t("btn-disapprove"), `decline_${chat}`).row()
+    .text(ctx.t("btn-custom"), `welcome_${chat}`);
   await ctx.editMessageText(
-    `*Settings for ${chatInfo.title}*\n\nCurrent settings:\nAutoApprove: ${autoappr}`,
+    ctx.t("chat-settings", {
+      title: chatInfo.title,
+      autoappr: autoappr.toString(),
+    }),
     {
       reply_markup: settings_buttons,
       parse_mode: "Markdown",
@@ -177,7 +192,7 @@ bot.callbackQuery(/approve_(.*)/, async (ctx) => {
   const chatInfo = await bot.api.getChat(Number(chatID));
   if (chatInfo.type == "private") return;
   await ctx.editMessageText(
-    `Settings updated! New join requests in the channel ${chatInfo.title} will be approved automatically!`,
+    ctx.t("chat-settings-approved", { title: chatInfo.title }),
     {
       reply_markup: new InlineKeyboard().text(
         "Back",
@@ -194,7 +209,7 @@ bot.callbackQuery(/decline_(.*)/, async (ctx) => {
   const chatInfo = await bot.api.getChat(Number(chatID));
   if (chatInfo.type == "private") return;
   await ctx.editMessageText(
-    `Settings updated! New join requests in the channel ${chatInfo.title} will be declined automatically!`,
+    ctx.t("chat-settings-disapproved", { title: chatInfo.title }),
     {
       reply_markup: new InlineKeyboard().text(
         "Back",
@@ -208,19 +223,19 @@ async function inputWelcomeMsg(conversation: MyConversation, ctx: MyContext) {
   const chatID = ctx.match?.[1];
   if (chatID == undefined) return;
   await ctx.editMessageText(
-    "Enter the welcome message you want the new approved/disapproved members to recieve.\n\nAvailable formattings:\n- {name} - users name.\n- {chat} - chat title.",
+    ctx.t("welcome-text"),
   );
-  const resp = await conversation.waitFor(":text");
-  if (!resp.msg.text) {
-    return await ctx.reply("Please provide a message!", {
+  const { message } = await conversation.waitFor("message:text");
+  if (!message.text) {
+    return await ctx.reply(ctx.t("provide-msg"), {
       reply_markup: new InlineKeyboard().text(
         "Back",
         `settings_page_${chatID}`,
       ),
     });
   }
-  await setWelcome(Number(chatID), resp.msg.text);
-  await ctx.reply(`Welcome message set to: \n${resp.msg.text}`, {
+  await setWelcome(Number(chatID), message.text);
+  await ctx.reply(ctx.t("welcome-set", { msg: message.text }), {
     reply_markup: new InlineKeyboard().text(
       "Back",
       `settings_page_${chatID}`,
@@ -272,6 +287,9 @@ bot.on("chat_join_request", async (ctx) => {
   welcome = welcome.replace("{name}", update.from.first_name).replace(
     "{chat}",
     update.chat.title,
+  ).replace("$name", update.from.first_name).replace(
+    "$chat",
+    update.chat.title,
   );
 
   // try to send a message
@@ -300,6 +318,34 @@ bot
       }`,
     );
   });
+
+bot.command("setlang", async (ctx) => {
+  let locales = "";
+  for (const loc of i18n.locales) locales += "- `" + loc + "`\n";
+  if (ctx.match === "") {
+    return await ctx.reply(
+      "_Specify a locale!_\n\n*Available locales:*\n" + locales,
+      { parse_mode: "Markdown" },
+    );
+  }
+
+  if (!i18n.locales.includes(ctx.match)) {
+    return await ctx.reply(
+      "_Invalid locale code._\n\n*Available locales:*\n" + locales,
+      { parse_mode: "Markdown" },
+    );
+  }
+
+  if ((await ctx.i18n.getLocale()) === ctx.match) {
+    return await ctx.reply(
+      `You are already using ${ctx.match} as your locale.`,
+    );
+  }
+
+  await ctx.i18n.setLocale(ctx.match);
+  await ctx.reply(`Locale has been set to ${ctx.match}`);
+});
+
 await bot.init();
 console.info(`Started Bot - @${bot.botInfo.username}`);
 console.info("\nDo join @BotzHub!\nBy - @xditya.\n");
