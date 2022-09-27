@@ -47,8 +47,9 @@ export const bot = new Bot<MyContext>(config.BOT_TOKEN);
 const i18n = new I18n<MyContext>({
   defaultLocale: "en",
   useSession: true,
-  directory: "locales",
 });
+
+await i18n.loadLocalesDir("locales");
 
 bot.use(hydrate());
 bot.use(session({ initial: () => ({}), storage: freeStorage(bot.token) }));
