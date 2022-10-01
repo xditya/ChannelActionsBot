@@ -5,8 +5,8 @@ Can be found on telegram as
 
 ## Features
 
-- Auto Approve new join requests
-- Auto Decline new join requets
+- Auto Approve new join requests.
+- Auto Decline new join requests.
 - Custom welcome messages.
 
 ## Deploy
@@ -27,7 +27,7 @@ deno task start
 3. Search for this repo on deno deploy, set branch as deno, set file as
    `serverless.ts`
 4. Add your envirnoment vars and click "Link".
-5. Once done, open the deployment page, copy deployment URL, set your bots
+5. Once done, open the deployment page, copy deployment URL, set your bot's
    webhook using
    `https://api.telegram.org/bot<your_bot_token_here>/setWebhook?url=<deployment_url_here>`.
 
