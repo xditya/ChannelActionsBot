@@ -5,8 +5,8 @@ Can be found on telegram as
 
 ## Features
 
-- Auto Approve new join requests
-- Auto Decline new join requets
+- Auto Approve new join requests.
+- Auto Decline new join requests.
 - Custom welcome messages.
 
 ## Deploy
@@ -27,7 +27,7 @@ deno task start
 3. Search for this repo on deno deploy, set branch as deno, set file as
    `serverless.ts`
 4. Add your envirnoment vars and click "Link".
-5. Once done, open the deployment page, copy deployment URL, set your bots
+5. Once done, open the deployment page, copy deployment URL, set your bot
    webhook using
    `https://api.telegram.org/bot<your_bot_token_here>/setWebhook?url=<deployment_url_here>`.
 
@@ -38,7 +38,7 @@ deno task start
 ### How to translate?
 1. Go to the [locales folder](./locales).
 2. Open any folder, say [en.ftl](./locales/en.ftl).
-3. Copy the contents, make a new file under the locales directory, named `lang_code.ftl`, where `lang_code` is your language code. 
+3. Copy the content, make a new file under the locales directory, named `lang_code.ftl`, where `lang_code` is your language code. 
 4. Edit the text in the new file, save it and make a pull request to this repository. 
 5. Thats it! The pr will be tested and merged.
    
