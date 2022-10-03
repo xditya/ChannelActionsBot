@@ -26,7 +26,7 @@ deno task start
    this repo.
 3. Search for this repo on deno deploy, set branch as deno, set file as
    `serverless.ts`
-4. Add your envirnoment vars and click "Link".
+4. Add your environment vars and click "Link".
 5. Once done, open the deployment page, copy deployment URL, set your bot's
    webhook using
    `https://api.telegram.org/bot<your_bot_token_here>/setWebhook?url=<deployment_url_here>`.
@@ -40,7 +40,7 @@ deno task start
 2. Open any folder, say [en.ftl](./locales/en.ftl).
 3. Copy the contents, make a new file under the locales directory, named `lang_code.ftl`, where `lang_code` is your language code. 
 4. Edit the text in the new file, save it and make a pull request to this repository. 
-5. Thats it! The pr will be tested and merged.
+5. That's it! The pr will be tested and merged.
    
 ## Support
 
