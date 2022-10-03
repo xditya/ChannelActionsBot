@@ -36,7 +36,7 @@ chat-settings-approved = Settings updated! New join requests in the channel {$ti
 
 chat-settings-disapproved = Settings updated! New join requests in the channel {$title} will be disapproved automatically!
 
-welcome-text = Enter the welcome message you want the new approved/disapproved members to recieve.
+welcome-text = Enter the welcome message you want the new approved/disapproved members to receive.
 
     Available formattings:
     - $name - users name.
