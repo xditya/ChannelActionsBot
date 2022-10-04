@@ -37,7 +37,7 @@ deno task start
 
 ### How to translate?
 1. Go to the [locales folder](./locales).
-2. Open any folder, say [en.ftl](./locales/en.ftl).
+2. Open any file, say [en.ftl](./locales/en.ftl).
 3. Copy the contents, make a new file under the locales directory, named `lang_code.ftl`, where `lang_code` is your language code. 
 4. Edit the text in the new file, save it and make a pull request to this repository. 
 5. That's it! The pr will be tested and merged.
