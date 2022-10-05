@@ -29,7 +29,7 @@ deno task start
 4. Add your environment vars and click "Link".
 5. Once done, open the deployment page, copy deployment URL, set your bot's
    webhook using
-   `https://api.telegram.org/bot<your_bot_token_here>/setWebhook?url=<deployment_url_here>`.
+   `https://api.telegram.org/bot<your_bot_token_here>/setWebhook?url=<deployment_url_here>/<your_bot_token_here>`.
 
 
 ## Translating
