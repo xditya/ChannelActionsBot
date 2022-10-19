@@ -27,7 +27,7 @@ btn-disapprove = Yeni Üyeleri Reddet
 
 btn-custom = Özel Hoş Geldiniz Mesajı
 
-sohbet ayarları = *{$title} için ayarlar*
+chat-settings = *{$title} için ayarlar*
 
     Mevcut ayarlar:
     Otomatik Onayla: {$autoappr}.
@@ -38,7 +38,7 @@ chat-settings-disapproved = Ayarlar güncellendi! {$title} kanalındaki yeni kat
 
 welcome-text = Yeni onaylanmış/onaylanmamış üyelerin almasını istediğiniz karşılama mesajını girin. Kullanılabilir biçimlendirmeler: - $name - kullanıcı adı. - $chat - sohbet başlığı.
 
-sağlamak-msg = Lütfen bir mesaj verin!
+welcome-msg = Lütfen bir mesaj verin!
 
 welcome-set = Karşılama mesajı şu şekilde ayarlandı:
     {$msg}
