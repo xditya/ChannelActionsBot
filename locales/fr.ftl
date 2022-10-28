@@ -15,9 +15,9 @@ help = <b>Instructions d'utilisation.</b>
 
 usage-help = Comment m'utiliser ❓
 
-    mises à jour = mises à jour
+updates = mises à jour
 
-no-perms = Soit je ne suis pas ajouté dans le chat en tant qu'admin, soit vous n'êtes pas admin dans le chat !
+no-perms = Soit je ne suis pas ajouté dans le chat en tant qu'administrateur, soit vous n'êtes pas administrateur dans le chat !
 
 not-admin = Vous n'êtes pas un administrateur du chat !
 
