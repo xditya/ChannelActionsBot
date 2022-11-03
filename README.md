@@ -21,6 +21,7 @@ deno task start
 
 ### Deno Deploy
 
+> [Watch the video tutorial on deploying!](https://youtu.be/hjxfJtk5ZWs)
 1. Open [deno deploy](https://dash.deno.com/), create a new project.
 2. [Fork](https://github.com/xditya/ChannelActionsBot/fork) the `deno` branch of
    this repo.
