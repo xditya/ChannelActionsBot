@@ -7,6 +7,8 @@
     "hydrate": "https://deno.land/x/grammy_hydrate@v1.2.0/mod.ts",
     "mongo": "https://deno.land/x/mongo@v0.31.1/mod.ts",
     "conversations": "https://deno.land/x/grammy_conversations@v1.0.2/mod.ts",
-    "i18n": "https://deno.land/x/grammy_i18n@v1.0.1/mod.ts"
+    "i18n": "https://deno.land/x/grammy_i18n@v1.0.1/mod.ts",
+    "grammy_free_storage": "https://deno.land/x/grammy_storages@v2.0.1/free/src/mod.ts",
+    "deno_cron": "https://deno.land/x/deno_cron@v1.0.0/cron.ts"
   }
 }

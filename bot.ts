@@ -12,6 +12,7 @@ import {
   countUsers,
   getAllSettings,
   getSettings,
+  getUsers,
   setStatus,
   setWelcome,
 } from "./db.ts";
@@ -33,7 +34,9 @@ import {
   createConversation,
 } from "conversations";
 import { I18n, I18nFlavor } from "i18n";
-import { freeStorage } from "https://deno.land/x/grammy_storages@v2.0.1/free/src/mod.ts";
+import { freeStorage } from "grammy_free_storage";
+
+import { cron } from "deno_cron";
 
 interface SessionData {
   __language_code?: string;
@@ -74,6 +77,8 @@ const owners: number[] = [];
 for (const owner of config.OWNERS.split(" ")) {
   owners.push(Number(owner));
 }
+
+const broadcasts = new Map();
 
 bot.callbackQuery(/set_locale_(.*)/, async (ctx) => {
   const i = ctx.match?.[0];
@@ -345,6 +350,45 @@ bot.command("setlang", async (ctx) => {
 
   await ctx.i18n.setLocale(ctx.match);
   await ctx.reply(`Locale has been set to ${ctx.match}`);
+});
+
+bot
+  .filter((ctx) => owners.includes(ctx.from?.id ?? 0))
+  .chatType("private")
+  .command("broadcast", async (ctx) => {
+    if (ctx.message.reply_to_message == undefined) {
+      await ctx.reply("Please reply to a message!");
+      return;
+    }
+    const msg = await ctx.reply("Broadcast has been scheduled.");
+    const reply = ctx.message.reply_to_message;
+
+    broadcasts.set("broadcast", reply).set("message", msg);
+  });
+
+// check every 2 minutes if a broadcast exists, and if yes, do it.
+cron("*/2  * * * *", async () => {
+  const msg = broadcasts.get("message");
+  const reply = broadcasts.get("broadcast");
+  if (!msg || !reply) return;
+  const users = await getUsers();
+  let err = 0;
+  broadcasts.clear();
+  for (const user of users) {
+    try {
+      await bot.api.copyMessage(user, reply.chat.id, reply.message_id);
+    } catch (error) {
+      if (error.error_code == 403) continue;
+      err++;
+      console.log("Error while broadcasting: ", error.message);
+      continue;
+    }
+  }
+  await bot.api.editMessageText(
+    msg.chat.id,
+    msg.message_id,
+    `Broadcast has been sent to ${users.length - err}/${users.length} users.`,
+  );
 });
 
 await bot.init();
