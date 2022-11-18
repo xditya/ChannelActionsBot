@@ -1,6 +1,8 @@
 import config from "./env.ts";
 import { MongoClient, ObjectId } from "mongo";
 
+import { ISession } from "mongo_sessions";
+
 console.log("Connecting to MongoDB...");
 const client = new MongoClient();
 let MONGO_URL = config.MONGO_URL;
@@ -20,6 +22,11 @@ interface UserSchema {
 }
 
 const db = client.database("ChannelActions");
+
+export const sessionsCollection = db.collection<ISession>(
+  "sessions",
+);
+
 const users = db.collection<UserSchema>("BOTUSERS");
 
 export async function addUser(userId: number) {
