@@ -13,6 +13,7 @@ import {
   getAllSettings,
   getSettings,
   getUsers,
+  sessionsCollection,
   setStatus,
   setWelcome,
 } from "./db.ts";
@@ -34,8 +35,8 @@ import {
   createConversation,
 } from "conversations";
 import { I18n, I18nFlavor } from "i18n";
-import { freeStorage } from "grammy_free_storage";
 
+import { MongoDBAdapter } from "mongo_sessions";
 import { cron } from "deno_cron";
 
 interface SessionData {
@@ -55,7 +56,12 @@ const i18n = new I18n<MyContext>({
 await i18n.loadLocalesDir("locales");
 
 bot.use(hydrate());
-bot.use(session({ initial: () => ({}), storage: freeStorage(bot.token) }));
+bot.use(
+  session({
+    initial: () => ({}),
+    storage: new MongoDBAdapter({ collection: sessionsCollection }),
+  }),
+);
 bot.use(i18n);
 bot.use(conversations());
 bot.use(createConversation(inputWelcomeMsg));
@@ -374,6 +380,11 @@ cron("*/2  * * * *", async () => {
   const users = await getUsers();
   let err = 0;
   broadcasts.clear();
+  await bot.api.editMessageText(
+    msg.chat.id,
+    msg.message_id,
+    `Broadcast has started.`,
+  );
   for (const user of users) {
     try {
       await bot.api.copyMessage(user, reply.chat.id, reply.message_id);
