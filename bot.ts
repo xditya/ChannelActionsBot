@@ -374,9 +374,11 @@ bot
 
 // check every 2 minutes if a broadcast exists, and if yes, do it.
 cron("*/2  * * * *", async () => {
+  console.log("Checking for Broadcasts...")
   const msg = broadcasts.get("message");
   const reply = broadcasts.get("broadcast");
   if (!msg || !reply) return;
+  console.log("Running Broadcast...")
   const users = await getUsers();
   let err = 0;
   broadcasts.clear();
