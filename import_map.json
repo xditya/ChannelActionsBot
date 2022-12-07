@@ -3,7 +3,7 @@
     "dotenv": "https://deno.land/std@0.154.0/dotenv/mod.ts",
     "envalid": "https://deno.land/x/envalid@0.1.2/mod.ts",
     "server": "https://deno.land/std@0.154.0/http/server.ts",
-    "grammy/": "https://deno.land/x/grammy@v1.11.1/",
+    "grammy/": "https://deno.land/x/grammy@v1.12.0/",
     "hydrate": "https://deno.land/x/grammy_hydrate@v1.2.0/mod.ts",
     "mongo": "https://deno.land/x/mongo@v0.30.1/mod.ts",
     "conversations": "https://deno.land/x/grammy_conversations@v1.0.2/mod.ts",

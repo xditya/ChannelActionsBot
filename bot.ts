@@ -83,6 +83,9 @@ for (const owner of config.OWNERS.split(" ")) {
   owners.push(Number(owner));
 }
 
+let TOTAL_USERS_SEEN = 0;
+const START_TIME = new Date().valueOf();
+
 // const broadcasts = new Map();
 
 bot.callbackQuery(/set_locale_(.*)/, async (ctx) => {
@@ -108,7 +111,7 @@ bot
 bot.callbackQuery("helper", async (ctx) => {
   await ctx.editMessageText(
     ctx.t("help") +
-      "\n\nTo approve members who are already in waiting list, upgrade to premium for 3$ per month! Contact @xditya_bot if interested.",
+      "\n\nTo approve members who are already in waiting list, upgrade to premium! Contact @xditya_bot for information on pricing.",
     {
       reply_markup: new InlineKeyboard().text("Main Menu 📭", "start"),
       parse_mode: "HTML",
@@ -281,6 +284,9 @@ bot.on("chat_join_request", async (ctx) => {
     }
   }
 
+  // increment total users seen
+  TOTAL_USERS_SEEN += 1;
+
   // try to approve
   try {
     if (approve_or_not) {
@@ -321,12 +327,34 @@ bot
   .chatType("private")
   .command("stats", async (ctx) => {
     const reply = await ctx.reply("Calculating...");
+    const diffTime = Math.abs(new Date().valueOf() - START_TIME);
+    let days = diffTime / (24 * 60 * 60 * 1000);
+    let hours = (days % 1) * 24;
+    let minutes = (hours % 1) * 60;
+    let secs = (minutes % 1) * 60;
+    [days, hours, minutes, secs] = [
+      Math.floor(days),
+      Math.floor(hours),
+      Math.floor(minutes),
+      Math.floor(secs),
+    ];
+    let uptime = "";
+    if (days > 0) uptime += `${days}d `;
+    if (hours > 0) uptime += `${hours}h `;
+    if (minutes > 0) uptime += `${minutes}m `;
+    if (secs > 0) uptime += `${secs}s.`;
     await bot.api.editMessageText(
       ctx.from.id,
       reply.message_id,
-      `Total users: ${await countUsers()}\nChats with modified settings: ${
-        (await getAllSettings()).length
-      }`,
+      `<b>Stats for @${bot.botInfo.username}</b>
+      
+<b>Total users</b>: ${await countUsers()}
+<b>Chats with modified settings</b>: ${(await getAllSettings()).length}
+<b>Total Users Seen (Approved/Disapproved)</b>: ${TOTAL_USERS_SEEN}
+<b>Uptime</b>: ${uptime}
+
+<b><a href="https://github.com/xditya/ChannelActionsBot">Repository</a> | <a href="https://t.me/BotzHub">Channel</a> | <a href="https://t.me/BotzHubChat">Support</a></b>`,
+      { parse_mode: "HTML", disable_web_page_preview: true },
     );
   });
 
