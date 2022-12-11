@@ -163,6 +163,8 @@
     "https://deno.land/x/grammy_i18n@v1.0.1/utils.ts": "2a719dfa830f764d62e2d7905bed01da18a9d331203e5bdfa20d177d48a2f809",
     "https://deno.land/x/grammy_storages@v2.0.1/mongodb/src/deps.deno.ts": "7336b73eca3e17d170a578fbaa598861fa996c98b9efafb141c2c81ad94b7add",
     "https://deno.land/x/grammy_storages@v2.0.1/mongodb/src/mod.ts": "89941365d7cce50556c949027bd62c4cfd5b6fd72afe321e307afbbe156f73f8",
+    "https://deno.land/x/language@v0.1.0/languages.ts": "d37e40290e99d87c1e4013226af7ee2b0f03ce2afdd472b213bcfdfabad8dc1b",
+    "https://deno.land/x/language@v0.1.0/mod.ts": "072aa7eb09f4b531011401a7c930a6a6a9f49fed4a3f65e755aa1b0907b65a0b",
     "https://deno.land/x/mongo@v0.30.1/deps.ts": "3d2f64d173b8e684c15cbe5ea89f9c8a2de420706a549749efc473ad078f5ffd",
     "https://deno.land/x/mongo@v0.30.1/mod.ts": "0989f34d08c40440b8786140abdaf863e964e23df5d1a80e661d3d4170d9d21e",
     "https://deno.land/x/mongo@v0.30.1/src/auth/base.ts": "7fe14cf0a63d6bbc4ba69a000a04b3b184d26842504d94652a6af2d0c9494944",

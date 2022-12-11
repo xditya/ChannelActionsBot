@@ -9,6 +9,7 @@
     "conversations": "https://deno.land/x/grammy_conversations@v1.0.2/mod.ts",
     "i18n": "https://deno.land/x/grammy_i18n@v1.0.1/mod.ts",
     "mongo_sessions": "https://deno.land/x/grammy_storages@v2.0.1/mongodb/src/mod.ts",
-    "deno_cron": "https://deno.land/x/deno_cron@v1.0.0/cron.ts"
+    "deno_cron": "https://deno.land/x/deno_cron@v1.0.0/cron.ts",
+    "language": "https://deno.land/x/language@v0.1.0/mod.ts"
   }
 }

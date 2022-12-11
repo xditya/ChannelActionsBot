@@ -36,6 +36,7 @@ import {
 import { I18n, I18nFlavor } from "i18n";
 
 import { MongoDBAdapter } from "mongo_sessions";
+import {getLanguageInfo} from "language"
 // import { cron } from "deno_cron";
 
 interface SessionData {
@@ -358,19 +359,27 @@ bot
     );
   });
 
+function getAvailableLocales() {
+  let message = "";
+  for (const locale of i18n.locales) {
+    const localName = getLanguageInfo(locale)?.nativeName ?? locale;
+    message += "- " + localName + " (`" + locale + "`)\n";
+  }
+  return message;
+}
+
 bot.command("setlang", async (ctx) => {
-  let locales = "";
-  for (const loc of i18n.locales) locales += "- `" + loc + "`\n";
+  const locales = getAvailableLocales();
   if (ctx.match === "") {
     return await ctx.reply(
-      "_Specify a locale!_\n\n*Available locales:*\n" + locales,
+      "_Specify a locale!_\n\n*Available locales:*\n" + locales + "\n\nUse `/setlang <code in brackets>` to set the locale.",
       { parse_mode: "Markdown" },
     );
   }
 
   if (!i18n.locales.includes(ctx.match)) {
     return await ctx.reply(
-      "_Invalid locale code._\n\n*Available locales:*\n" + locales,
+      "_Invalid locale code._\n\n*Available locales:*\n" + locales + "\n\nUse `/setlang <code in brackets>` to set the locale.",
       { parse_mode: "Markdown" },
     );
   }
