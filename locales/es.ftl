@@ -7,7 +7,7 @@ start-msg = ¡Hola {$user}!
 help = <b>Instrucciones de uso.</b>
     
     Añádeme a tu canal como administrador, con el permiso de "añadir usuarios", ¡y reenvíame un mensaje de ese chat para ponerme a punto!
-    Utiliza /setlang en mi MD para cambiar mi idioma.
+
 usage-help = ¿Cómo utilizarme? ❓
 updates = Actualizaciones
 no-perms = ¡O no estoy agregado al chat como administrador, o no eres un administrador en el chat!

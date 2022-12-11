@@ -11,8 +11,6 @@ help = <b>Brugsvejledning.</b>
     
      Tilføj mig til din kanal som administrator, med "tilføj brugere"-tilladelse, og videresend mig en besked fra den chat for at oprette mig!
 
-     Brug /setlang i min DM for at ændre mit sprog.
-
 usage-help = Sådan bruger du mig ❓
 
 updates = opdateringer

@@ -11,8 +11,6 @@ help = <b>Kullanım talimatları.</b>
 
     "Kullanıcı ekle" izniyle beni kanalınıza yönetici olarak ekleyin ve beni ayarlamak için o sohbetten bana bir mesaj iletin!
 
-    Dilimi değiştirmek için DM'de /setlang'ı kullan.
-
 usage-help = Beni nasıl kullanırım ❓
 
 updates = İzinsiz

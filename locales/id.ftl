@@ -11,8 +11,6 @@ help = <b>Petunjuk penggunaan.</b>
     
     Tambahkan saya ke saluran Anda sebagai administrator, dengan izin "tambah pengguna", dan teruskan ke saya pesan dari obrolan itu untuk menyiapkan saya!
 
-    Gunakan /setlang di DM saya untuk mengubah bahasa saya.
-
 usage-help = Bagaimana cara menggunakan saya ❓
 
 updates = Pembaruan

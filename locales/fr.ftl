@@ -11,8 +11,6 @@ help = <b>Instructions d'utilisation.</b>
     
     Ajoutez-moi à votre chaîne en tant qu'administrateur, avec l'autorisation "ajouter des utilisateurs", et transférez-moi un message depuis ce chat pour me configurer !
 
-    Utilisez /setlang dans mon DM pour changer ma langue.
-
 usage-help = Comment m'utiliser ❓
 
 updates = mises à jour

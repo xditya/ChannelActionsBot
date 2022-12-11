@@ -11,8 +11,6 @@ help = <b>Gebrauchsanweisung.</b>
     
     Füge mich als Administrator zu deinem Kanal hinzu, mit "Benutzer hinzufügen" Erlaubnis, und leiten Sie mir eine Nachricht aus diesem Chat weiter, um mich einzurichten!/popup.html
 
-    Verwenden Sie /setlang in meinem DM, um meine Sprache zu ändern.
-
 usage-help = Wie man mich benutzt❓
 
 updates = Aktualisierung
