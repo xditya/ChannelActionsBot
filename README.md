@@ -21,6 +21,7 @@ deno task start
 
 ### Deno Deploy
 
+[![Deploy Now!](https://img.shields.io/badge/Deploy%20Now-Deno%20Deploy-blue?style=for-the-badge&logo=deno)](https://dash.deno.com/new?url=https://raw.githubusercontent.com/xditya/ChannelActionsBot/deno/serverless.ts&env=BOT_TOKEN,OWNERS,MONGO_URL)
 > [Watch the video tutorial on deploying!](https://youtu.be/hjxfJtk5ZWs)
 1. Open [deno deploy](https://dash.deno.com/), create a new project.
 2. [Fork](https://github.com/xditya/ChannelActionsBot/fork) the `deno` branch of
