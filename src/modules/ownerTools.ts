@@ -49,7 +49,7 @@ composer
   .command("broadcast", async (ctx) => {
     if (Deno.env.get("DENO_DEPLOYMENT_ID") != undefined) {
       return await ctx.reply(
-        "This command cannot be used on deno deploy, due to the low CPU response time. Run the bot on a server instead.",
+        "This command cannot be used on deno deploy, because I don't know how to implement it. Run the bot on a server instead.",
       );
     }
     let done = 0;
