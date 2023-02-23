@@ -75,11 +75,10 @@ if (Deno.args[0] == "--polling") {
     () => stopRunner,
   );
 } else {
+  console.info(`Started as @${bot.botInfo.username} on webhooks.`);
+
   const handleUpdate = webhookCallback(bot, "std/http");
-
   serve(async (req) => {
-    console.info(`Started as @${bot.botInfo.username} on webhooks.`);
-
     if (req.method === "POST") {
       const url = new URL(req.url);
       if (url.pathname.slice(1) === bot.token) {
