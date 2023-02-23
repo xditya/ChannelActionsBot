@@ -1,13 +1,12 @@
-import { MyContext } from "./bot.ts";
-import { Api, Bot, RawApi } from "grammy/mod.ts";
+import { MyContext } from "../core/types.ts";
 
 export async function get_perms(
-  bot: Bot<MyContext, Api<RawApi>>,
+  ctx: MyContext,
   chat: number,
   user: number,
 ) {
   try {
-    const stats = await bot.api.getChatMember(chat, user);
+    const stats = await ctx.api.getChatMember(chat, user);
     if (stats.status == "administrator" || stats.status == "creator") {
       return true;
     } else return false;

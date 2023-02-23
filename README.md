@@ -14,15 +14,19 @@ Can be found on telegram as
 ### Local Hosting
 
 ```
-git clone https://github.com/xditya/ChannelActions -b deno
+git clone https://github.com/xditya/ChannelActions
 -- Make a .env file as in .env.sample ---
-deno task start
+deno task poll (for long polling)
+OR
+deno task webhook (for webhooks)
 ```
 
 ### Deno Deploy
 
-[![Deploy Now!](https://img.shields.io/badge/Deploy%20Now-Deno%20Deploy-blue?style=for-the-badge&logo=deno)](https://dash.deno.com/new?url=https://raw.githubusercontent.com/xditya/ChannelActionsBot/deno/serverless.ts&env=BOT_TOKEN,OWNERS,MONGO_URL)
+[![Deploy Now!](https://img.shields.io/badge/Deploy%20Now-Deno%20Deploy-blue?style=for-the-badge&logo=deno)](https://dash.deno.com/new?url=https://raw.githubusercontent.com/xditya/ChannelActionsBot/deno/main.ts&env=BOT_TOKEN,OWNERS,MONGO_URL)
+
 > [Watch the video tutorial on deploying!](https://youtu.be/hjxfJtk5ZWs)
+
 1. Open [deno deploy](https://dash.deno.com/), create a new project.
 2. [Fork](https://github.com/xditya/ChannelActionsBot/fork) the `deno` branch of
    this repo.
@@ -33,17 +37,21 @@ deno task start
    webhook using
    `https://api.telegram.org/bot<your_bot_token_here>/setWebhook?url=<deployment_url_here>/<your_bot_token_here>`.
 
-
 ## Translating
-> The bot now has multi-language support. You can pr your local language to this repo!
+
+> The bot now has multi-language support. You can pr your local language to this
+> repo!
 
 ### How to translate?
+
 1. Go to the [locales folder](./locales).
 2. Open any file, say [en.ftl](./locales/en.ftl).
-3. Copy the contents, make a new file under the locales directory, named `lang_code.ftl`, where `lang_code` is your language code. 
-4. Edit the text in the new file, save it and make a pull request to this repository. 
+3. Copy the contents, make a new file under the locales directory, named
+   `lang_code.ftl`, where `lang_code` is your language code.
+4. Edit the text in the new file, save it and make a pull request to this
+   repository.
 5. That's it! The pr will be tested and merged.
-   
+
 ## Support
 
 - Telegram, [@BotzHubChat](https://t.me/BotzHubChat)
