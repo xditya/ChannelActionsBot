@@ -31,7 +31,7 @@ deno task webhook (for webhooks)
 2. [Fork](https://github.com/xditya/ChannelActionsBot/fork) the `deno` branch of
    this repo.
 3. Search for this repo on deno deploy, set branch as deno, set file as
-   `serverless.ts`
+   `main.ts`
 4. Add your environment vars and click "Link".
 5. Once done, open the deployment page, copy deployment URL, set your bot's
    webhook using
