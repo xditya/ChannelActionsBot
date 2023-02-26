@@ -74,18 +74,22 @@ composer
           reply_markup: isReply.reply_markup,
         });
         done++;
+        if (done % 100 == 0) {
+          try {
+            await ctx.api.editMessageText(
+              ctx.chat!.id,
+              reply.message_id,
+              "Broadcast is still in progress. Sent to " + done + "/" +
+                totalUsers +
+                "users.",
+            );
+          } catch (e) {
+            console.error(e);
+          }
+        }
       } catch (err) {
         console.log(
           `Failed to send message to ${userID}. Error: ${err.message}`,
-        );
-      }
-      if (done % 100 == 0) {
-        await ctx.api.editMessageText(
-          ctx.chat!.id,
-          reply.message_id,
-          "Broadcast is still in progress. Sent to " + done + "/" +
-            totalUsers +
-            "users.",
         );
       }
     }
