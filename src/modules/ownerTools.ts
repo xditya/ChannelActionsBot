@@ -2,7 +2,7 @@ import { MyContext } from "../core/types.ts";
 import helperClass from "../helpers/baseHelpers.ts";
 
 import { Composer } from "grammy/mod.ts";
-import { countUsers, getUsers } from "../database/usersDb.ts";
+import { countUsers, users } from "../database/usersDb.ts";
 import { getAllSettings } from "../database/welcomeDb.ts";
 
 const composer = new Composer<MyContext>();
@@ -52,6 +52,7 @@ composer
         "This command cannot be used on deno deploy, due to the low CPU response time. Run the bot on a server instead.",
       );
     }
+    const totalUsers = await countUsers();
     let done = 0;
     const reply = await ctx.reply("Please wait, in progress...");
     const isReply = await ctx.message?.reply_to_message;
@@ -62,16 +63,20 @@ composer
         "Please reply to a message to broadcast.",
       );
     }
-    const users = await getUsers();
-    for (const user of users) {
+
+    // use curosr to avoid memory issues
+    // and maybe prevent broadcast from
+    // blocking the main process
+    const cursor = users.find();
+    for await (const { userID } of cursor) {
       try {
-        await ctx.api.copyMessage(user, ctx.chat!.id, isReply.message_id, {
+        await ctx.api.copyMessage(userID, ctx.chat!.id, isReply.message_id, {
           reply_markup: isReply.reply_markup,
         });
         done++;
       } catch (err) {
         console.log(
-          `Failed to send message to ${user}. Error: ${err.message}`,
+          `Failed to send message to ${userID}. Error: ${err.message}`,
         );
       }
       if (done % 100 == 0) {
@@ -79,7 +84,7 @@ composer
           ctx.chat!.id,
           reply.message_id,
           "Broadcast is still in progress. Sent to " + done + "/" +
-            users.length +
+            totalUsers +
             "users.",
         );
       }
@@ -87,7 +92,7 @@ composer
     await ctx.api.editMessageText(
       ctx.chat!.id,
       reply.message_id,
-      "Broadcast complete. Sent to " + done + "/" + users.length + "users.",
+      "Broadcast complete. Sent to " + done + "/" + totalUsers + "users.",
     );
   });
 
