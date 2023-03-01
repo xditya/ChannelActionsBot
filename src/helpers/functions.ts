@@ -18,5 +18,5 @@ export function getAvaialableLocalesButtons(currentLocale: string) {
       c = 0;
     }
   }
-  return keyboard.row().text("« Back", "cancelLocaleSetting");
+  return keyboard.row().text("« Back", "mainMenu");
 }

@@ -88,7 +88,7 @@ composer.callbackQuery(/approve_(.*)/, async (ctx) => {
     ctx.t("chat-settings-approved", { title: chatInfo.title }),
     {
       reply_markup: new InlineKeyboard().text(
-        "Back",
+        "« Back",
         `settings_page_${chatID}`,
       ),
     },
@@ -105,7 +105,7 @@ composer.callbackQuery(/decline_(.*)/, async (ctx) => {
     ctx.t("chat-settings-disapproved", { title: chatInfo.title }),
     {
       reply_markup: new InlineKeyboard().text(
-        "Back",
+        "« Back",
         `settings_page_${chatID}`,
       ),
     },

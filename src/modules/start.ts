@@ -27,4 +27,18 @@ composer
     await addUser(ctx.from!.id);
   });
 
+composer.callbackQuery("mainMenu", async (ctx) => {
+  await ctx.editMessageText(
+    ctx.t("start-msg", { user: ctx.from!.first_name }),
+    {
+      parse_mode: "HTML",
+      reply_markup: new InlineKeyboard()
+        .text(ctx.t("usage-help"), "helper")
+        .text("Language 🌐", "setLang").row()
+        .url(ctx.t("updates"), "https://t.me/BotzHub"),
+      disable_web_page_preview: true,
+    },
+  );
+});
+
 export default composer;

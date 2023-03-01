@@ -16,7 +16,7 @@ composer.callbackQuery("helper", async (ctx) => {
           .row()
           .text(
             "Main Menu 📭",
-            "cancelLocaleSetting",
+            "mainMenu",
           ),
         parse_mode: "HTML",
       },
@@ -36,7 +36,8 @@ composer.callbackQuery(/add_to_(.*)/, async (ctx) => {
           `Add to ${channelOrGroup}`,
           `https://t.me/${ctx.me.username}?start${channelOrGroup}=by_BotzHub&admin=invite_users+manage_chat`,
         )
-        .text("✅ Done", `select_${channelOrGroup}`),
+        .text("✅ Done", `select_${channelOrGroup}`).row()
+        .text("« Back", "mainMenu"),
     },
   );
 });

@@ -35,15 +35,4 @@ composer.callbackQuery(/set_locale_(.*)/, async (ctx) => {
   await ctx.i18n.setLocale(i);
 });
 
-composer.callbackQuery("cancelLocaleSetting", async (ctx) => {
-  await ctx.editMessageText(ctx.t("start-msg", { user: ctx.from.first_name }), {
-    parse_mode: "HTML",
-    reply_markup: new InlineKeyboard()
-      .text(ctx.t("usage-help"), "helper").row()
-      .text("Change Language", "setLang").row()
-      .url(ctx.t("updates"), "https://t.me/BotzHub"),
-    disable_web_page_preview: true,
-  });
-});
-
 export default composer;

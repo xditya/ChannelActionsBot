@@ -16,7 +16,7 @@ export async function inputWelcomeMsg(
   if (!message.text) {
     return await ctx.reply(ctx.t("provide-msg"), {
       reply_markup: new InlineKeyboard().text(
-        "Back",
+        "« Back",
         `settings_page_${chatID}`,
       ),
     });
