@@ -1,9 +1,10 @@
 import { MyContext } from "../core/types.ts";
 import start from "./start.ts";
-import callbacks from "./callbacks.ts";
+import help from "./help.ts";
+import chatSettings from "./chatSettings.ts";
+import langSettings from "./langSettings.ts";
 import chatJoins from "./chatJoins.ts";
 import ownerTools from "./ownerTools.ts";
-import settings from "./settings.ts";
 
 import { Composer } from "grammy/mod.ts";
 
@@ -11,10 +12,11 @@ const composer = new Composer<MyContext>();
 
 composer.use(
   start,
-  callbacks,
+  help,
+  chatSettings,
+  langSettings,
   chatJoins,
   ownerTools,
-  settings,
 );
 
 export default composer;
