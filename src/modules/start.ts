@@ -16,6 +16,7 @@ composer
       });
       return;
     }
+    if (ctx.chat.type != "private") return;
     await ctx.reply(ctx.t("start-msg", { user: ctx.from!.first_name }), {
       parse_mode: "HTML",
       reply_markup: new InlineKeyboard()
