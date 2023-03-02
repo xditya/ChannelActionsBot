@@ -9,19 +9,31 @@ Can be found on telegram as
 - Auto Decline new join requests.
 - Custom welcome messages.
 
-## Deploy
+## Local Hosting
 
-### Local Hosting
+[![DigitalOcean Referral Badge](https://web-platforms.sfo2.digitaloceanspaces.com/WWW/Badge%203.svg)](https://www.digitalocean.com/?refcode=7b7d6a915392&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge)
+
+Requirements:
+
+1. [Deno](https://deno.land/manual/getting_started/installation)
+2. npm (for pm2) (skip if you plan to [use systemd](https://grammy.dev/hosting/vps.html#systemd))
+
+### Using PM2
 
 ```
-git clone https://github.com/xditya/ChannelActions
--- Make a .env file as in .env.sample ---
-deno task poll (for long polling)
-OR
-deno task webhook (for webhooks)
+apt-get update -y && apt-get upgrade && apt install unzip npm -y && curl -fsSL https://deno.land/x/install/install.sh | sh git clone https://github.com/xditya/ChannelActionsBot && cd ChannelActionsBot && nano .env && npm install pm2-g && pm2 start main.ts --interpreter="/root/.deno/bin/deno" --interpreter-args="run --allow-env --allow-net --allow-read --no-prompt" --name "ChannelActions" -- start -- --polling
 ```
 
-### Deno Deploy
+> **Warning**
+> This command is only for the first run.
+
+> **Note**
+> Fill up the enviromnent vars as in [.env.sample](./.env.sample) when a nano editor is opened. Use CTRL+S and CTRL+X to save and exit, and continue installation.
+
+> **Note**
+> For viewing logs, use `pm2 logs ChannelActions`
+
+## Deno Deploy
 
 [![Deploy Now!](https://img.shields.io/badge/Deploy%20Now-Deno%20Deploy-blue?style=for-the-badge&logo=deno)](https://dash.deno.com/new?url=https://raw.githubusercontent.com/xditya/ChannelActionsBot/deno/main.ts&env=BOT_TOKEN,OWNERS,MONGO_URL)
 
