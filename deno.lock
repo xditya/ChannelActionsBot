@@ -156,6 +156,8 @@
     "https://deno.land/x/grammy@v1.14.1/types.ts": "729415590dfa188dbe924dea614dff4e976babdbabb28a307b869fc25777cdf0",
     "https://deno.land/x/grammy_autoquote@v1.1.1/deps.deno.ts": "4650d6df6f7a231f5d03536899074d5bf10e206a7e3762f8cf03b7be87f73869",
     "https://deno.land/x/grammy_autoquote@v1.1.1/mod.ts": "13da20ee2f20a650ad06b0214fa82f32f2bbaf312975281ac56570eb09e95a04",
+    "https://deno.land/x/grammy_autoquote@v1.1.2/deps.deno.ts": "4650d6df6f7a231f5d03536899074d5bf10e206a7e3762f8cf03b7be87f73869",
+    "https://deno.land/x/grammy_autoquote@v1.1.2/mod.ts": "35b171b297732544bb07302d360ec3eb4715b89f15e9f8b1de973ed0cdd2d5ce",
     "https://deno.land/x/grammy_conversations@v1.1.1/conversation.ts": "db8470c7a7313a390d3a5b9aad111b15a547a5c7c408ede962b630f349ec5c56",
     "https://deno.land/x/grammy_conversations@v1.1.1/deps.deno.ts": "c982798d7ca4cd3ebcd5a24319d03c5980dc47827b5a172a77022859abdb404e",
     "https://deno.land/x/grammy_conversations@v1.1.1/form.ts": "d2d527fdcb26eb489b4aa1a183ae3aa14bf185a375ebf7d5c6ab8360e8b0e170",

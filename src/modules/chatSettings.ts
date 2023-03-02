@@ -34,6 +34,10 @@ async function settingsHandler(ctx: MyContext, chat: number, user: number) {
       parse_mode: "Markdown",
     },
   );
+  const tempRemoveKbd = await ctx.reply("Removing keyboard..", {
+    reply_markup: { remove_keyboard: true },
+  });
+  await tempRemoveKbd.delete();
 }
 composer
   .chatType("private")
