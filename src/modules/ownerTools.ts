@@ -53,7 +53,7 @@ composer
       );
     }
     const totalUsers = await countUsers();
-    let done = 0;
+    let done = 0, blocked = 0;
     const reply = await ctx.reply("Please wait, in progress...");
     const isReply = await ctx.message?.reply_to_message;
     if (!isReply) {
@@ -67,36 +67,54 @@ composer
     // use curosr to avoid memory issues
     // and maybe prevent broadcast from
     // blocking the main process
-    const cursor = users.find();
-    for await (const { userID } of cursor) {
+
+    for await (const { userID } of users.find()) {
+      const user = userID;
       try {
-        await ctx.api.copyMessage(userID, ctx.chat!.id, isReply.message_id, {
+        await ctx.api.copyMessage(user, ctx.chat!.id, isReply.message_id, {
           reply_markup: isReply.reply_markup,
         });
         done++;
-        if (done % 100 == 0) {
-          try {
-            await ctx.api.editMessageText(
-              ctx.chat!.id,
-              reply.message_id,
-              "Broadcast is still in progress. Sent to " + done + "/" +
-                totalUsers +
-                "users.",
-            );
-          } catch (e) {
-            console.error(e);
-          }
-        }
       } catch (err) {
-        console.log(
-          `Failed to send message to ${userID}. Error: ${err.message}`,
+        if (err.parameters.retry_after) {
+          const timeOut = err.parameters.retry_after;
+          const wait = Number(timeOut * 2000);
+          await ctx.api.editMessageText(
+            ctx.chat!.id,
+            reply.message_id,
+            `Seeping for ${timeOut} seconds due to a floodwait.\n\nBroadcast completed to ${done}/${totalUsers} users, of which ${blocked} blocked the bot.`,
+          );
+          await new Promise((f) => setTimeout(f, wait));
+          await ctx.api.editMessageText(
+            ctx.chat!.id,
+            reply.message_id,
+            `Restarted broadcast, already sent to ${done}/${totalUsers} users, of which ${blocked} blocked the bot.`,
+          );
+        }
+        if (err.error_code == 403 || err.error_code == 400) blocked++;
+        else {
+          console.log(
+            `Failed to send message to ${user}. Error: ${err.message}`,
+          );
+        }
+      }
+      if (done % 100 == 0) {
+        await ctx.api.editMessageText(
+          ctx.chat!.id,
+          reply.message_id,
+          `Brodcast done to ${done}/${totalUsers} users, of which ${blocked} blocked the bot.\n\nStill in progress...`,
         );
       }
     }
     await ctx.api.editMessageText(
       ctx.chat!.id,
       reply.message_id,
-      "Broadcast complete. Sent to " + done + "/" + totalUsers + "users.",
+      `Broadcast completed.
+      
+Total users: ${totalUsers}
+Sent to: ${done}
+Blocked: ${blocked}
+Failed for unknown reason: ${totalUsers - done - blocked}`,
     );
   });
 
