@@ -20,8 +20,11 @@ Requirements:
 
 ### Using PM2
 
+> **Note**
+> The below command will install deno, npm and pm2. You do not have to manually install them.
+
 ```
-apt-get update -y && apt-get upgrade && apt install unzip npm -y && curl -fsSL https://deno.land/x/install/install.sh | sh && git clone https://github.com/xditya/ChannelActionsBot && cd ChannelActionsBot && nano .env && npm install pm2-g && pm2 start main.ts --interpreter="/root/.deno/bin/deno" --interpreter-args="run --allow-env --allow-net --allow-read --no-prompt" --name "ChannelActions" -- --polling
+apt-get update -y && apt-get upgrade -y && apt install unzip npm -y && curl -fsSL https://deno.land/x/install/install.sh | sh && git clone https://github.com/xditya/ChannelActionsBot && cd ChannelActionsBot && nano .env && npm install pm2 -g && pm2 start main.ts --interpreter="/home/$(whoami)/.deno/bin/deno" --interpreter-args="run --allow-env --allow-net --allow-read --no-prompt" --name "ChannelActions" -- --polling
 ```
 
 > **Warning**
