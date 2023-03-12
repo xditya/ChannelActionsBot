@@ -1,3 +1,4 @@
+#!/bin/sh
 echo "Channel Actions Bot - Installer."
 echo "This script will install the bot and all its dependencies, and use pm2 to create a process to run the bot."
 
@@ -29,7 +30,14 @@ echo "Installing pm2.."
 npm install pm2 --location=global
 
 echo "Starting the bot.."
-pm2 start main.ts --interpreter="/home/$(whoami)/.deno/bin/deno" --interpreter-args="run --allow-env --allow-net --allow-read --no-prompt" --name "ChannelActions" -- --polling
+if [ "$EUID" -ne 0 ]
+then
+  path="/home/$(whoami)/.deno/bin/deno"
+else
+    path="/root/.deno/bin/deno"
+fi
+
+pm2 start main.ts --interpreter=$path --interpreter-args="run --allow-env --allow-net --allow-read --no-prompt" --name "ChannelActions" -- --polling
 
 echo "Bot has started. View logs using 'pm2 logs ChannelActions'"
 echo ""
