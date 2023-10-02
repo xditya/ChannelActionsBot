@@ -58,7 +58,7 @@ composer.on("chat_join_request", async (ctx) => {
   // try to send a message
   try {
     await ctx.api.sendMessage(
-      update.from.id,
+      update.user_chat_id,
       welcome,
     );
   } catch (error) {
