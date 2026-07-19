@@ -4,6 +4,8 @@
     "grammy/": "https://deno.land/x/grammy@v1.45.1/",
     "mongodb": "npm:mongodb@^6.20.0",
     "mongo_sessions": "npm:@grammyjs/storage-mongodb@^2.6.0",
+    "hono": "npm:hono@^4.6.0",
+    "hono/deno": "npm:hono@^4.6.0/deno",
     "autoQuote": "https://deno.land/x/grammy_autoquote@v2.0.9/mod.ts",
     "hydrate": "https://deno.land/x/grammy_hydrate@v1.7.0/mod.ts",
     "i18n": "https://deno.land/x/grammy_i18n@v1.1.0/mod.ts",

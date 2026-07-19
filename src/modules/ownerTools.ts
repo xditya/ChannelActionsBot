@@ -4,6 +4,7 @@ import helperClass from "../helpers/baseHelpers.ts";
 import { Composer, GrammyError } from "grammy/mod.ts";
 import { countUsers, users } from "../database/usersDb.ts";
 import { countSettings } from "../database/welcomeDb.ts";
+import { getUsersSeen } from "../database/statsDb.ts";
 
 const composer = new Composer<MyContext>();
 
@@ -37,7 +38,7 @@ composer
 
 <b>Total users</b>: ${await countUsers()}
 <b>Chats with modified settings</b>: ${await countSettings()}
-<b>Total Users Seen (Approved/Disapproved)</b>: ${helperClass.TOTAL_USERS_SEEN}
+<b>Total Users Seen (Approved/Disapproved)</b>: ${await getUsersSeen()}
 <b>Uptime</b>: ${uptime}
 
 <b><a href="https://github.com/xditya/ChannelActionsBot">Repository</a> | <a href="https://t.me/BotzHub">Channel</a> | <a href="https://t.me/BotzHubChat">Support</a></b>`,

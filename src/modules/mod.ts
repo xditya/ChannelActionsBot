@@ -4,6 +4,7 @@ import help from "./help.ts";
 import chatSettings from "./chatSettings.ts";
 import langSettings from "./langSettings.ts";
 import chatJoins from "./chatJoins.ts";
+import chatTracking from "./chatTracking.ts";
 import ownerTools from "./ownerTools.ts";
 
 import { Composer } from "grammy/mod.ts";
@@ -16,6 +17,7 @@ composer.use(
   chatSettings,
   langSettings,
   chatJoins,
+  chatTracking,
   ownerTools,
 );
 

@@ -1,6 +1,7 @@
 import { MyContext } from "../core/types.ts";
 import { getSettings } from "../database/welcomeDb.ts";
-import helperClass from "../helpers/baseHelpers.ts";
+import { recordJoinAction } from "../database/statsDb.ts";
+import { upsertChat } from "../database/chatsDb.ts";
 
 import { Composer, GrammyError } from "grammy/mod.ts";
 
@@ -24,9 +25,6 @@ composer.on("chat_join_request", async (ctx) => {
       (approve_or_not ? def_welcome_approve : def_welcome_decline);
   }
 
-  // increment total users seen
-  helperClass.TOTAL_USERS_SEEN += 1;
-
   // try to approve
   try {
     if (approve_or_not) {
@@ -34,6 +32,16 @@ composer.on("chat_join_request", async (ctx) => {
     } else {
       await ctx.api.declineChatJoinRequest(update.chat.id, update.from.id);
     }
+    // aggregate counters + chat title cache; failures must not break handling
+    Promise.all([
+      recordJoinAction(update.chat.id, approve_or_not),
+      upsertChat({
+        chatID: update.chat.id,
+        title: update.chat.title,
+        username: "username" in update.chat ? update.chat.username : undefined,
+        type: update.chat.type,
+      }),
+    ]).catch((err) => console.warn("Stats write failed:", err.message));
   } catch (error) {
     if (
       error instanceof GrammyError &&

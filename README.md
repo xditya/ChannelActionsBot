@@ -8,6 +8,29 @@ Can be found on telegram as
 - Auto Approve new join requests.
 - Auto Decline new join requests.
 - Custom welcome messages.
+- Web dashboard + Telegram Mini App to manage settings, with dark mode and
+  owner stats (daily approve/decline counters, most active chats).
+
+## Web dashboard / Mini App
+
+The bot serves a dashboard (static SPA + JSON API) on `PORT` (default 8000)
+in both webhook and polling modes.
+
+- **Auth**: inside Telegram, the Mini App authenticates automatically via
+  signed `initData`; in a browser, the official Telegram Login Widget is used.
+  Every settings change is re-verified against `getChatMember`, so only chat
+  admins can change a chat's settings.
+- **Mini App setup**: set `WEBAPP_URL` to your public HTTPS URL — the bot
+  installs it as its menu button on startup. Optionally also create a Mini App
+  via [@BotFather](https://t.me/BotFather) → `/newapp` to give it a
+  `t.me/<bot>/<app>` link.
+- **Login widget setup**: in BotFather, `/setdomain` → your dashboard domain
+  (required for browser login; the Mini App works without it).
+- **Webhook note**: include `my_chat_member` in `allowed_updates` when setting
+  your webhook, so the dashboard learns about chats automatically:
+  `.../setWebhook?url=<url>/<token>&allowed_updates=["message","callback_query","chat_join_request","my_chat_member"]`
+- Stats counters start from the day this version is deployed; the chart fills
+  in over its first 14 days.
 
 ## Local Hosting
 

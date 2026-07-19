@@ -23,6 +23,8 @@ import { hydrate } from "hydrate";
 import { MongoDBAdapter } from "mongo_sessions";
 import { run } from "grammy_runner";
 
+import { createWebApp } from "./src/web/server.ts";
+
 await i18n.loadLocalesDir("locales");
 
 // initialize the bot
@@ -53,6 +55,17 @@ bot.catch((err) => {
   }
 });
 
+// install the dashboard as the bot's menu button (mini app)
+if (config.WEBAPP_URL) {
+  bot.api.setChatMenuButton({
+    menu_button: {
+      type: "web_app",
+      text: "Dashboard",
+      web_app: { url: config.WEBAPP_URL },
+    },
+  }).catch((err) => console.warn("Could not set menu button:", err.message));
+}
+
 if (Deno.args[0] == "--polling") {
   console.info(`Started as @${bot.botInfo.username} on long polling.`);
 
@@ -63,7 +76,12 @@ if (Deno.args[0] == "--polling") {
   const runner = run(bot, {
     runner: {
       fetch: {
-        allowed_updates: ["chat_join_request", "message", "callback_query"],
+        allowed_updates: [
+          "chat_join_request",
+          "message",
+          "callback_query",
+          "my_chat_member",
+        ],
       },
     },
   });
@@ -74,24 +92,18 @@ if (Deno.args[0] == "--polling") {
   if (Deno.build.os != "windows") {
     Deno.addSignalListener("SIGTERM", stopRunner);
   }
+
+  const web = createWebApp({ botUsername: bot.botInfo.username });
+  Deno.serve({ port: config.PORT }, web.fetch);
 } else {
   console.info(`Started as @${bot.botInfo.username} on webhooks.`);
 
-  const handleUpdate = webhookCallback(bot, "std/http");
-  Deno.serve(async (req) => {
-    if (req.method === "POST") {
-      const url = new URL(req.url);
-      if (url.pathname.slice(1) === bot.token) {
-        try {
-          return await handleUpdate(req);
-        } catch (err) {
-          console.error(err);
-          return new Response(null, { status: 500 });
-        }
-      }
-    }
-    return new Response("Welcome!");
+  const web = createWebApp({
+    botUsername: bot.botInfo.username,
+    webhookPath: `/${bot.token}`,
+    webhookHandler: webhookCallback(bot, "std/http"),
   });
+  Deno.serve({ port: config.PORT }, web.fetch);
 }
 
 export default bot;

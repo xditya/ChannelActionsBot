@@ -7,7 +7,6 @@ for (const owner of config.OWNERS.split(" ")) {
 
 class Helpers {
   OWNERS = owners;
-  TOTAL_USERS_SEEN = 0;
   START_TIME = new Date().valueOf();
 }
 

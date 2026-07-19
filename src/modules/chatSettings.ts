@@ -1,5 +1,6 @@
 import { MyContext } from "../core/types.ts";
 import { getSettings, setStatus, setWelcome } from "../database/welcomeDb.ts";
+import { addAdmin, upsertChat } from "../database/chatsDb.ts";
 import { get_perms } from "../helpers/permChecker.ts";
 
 import { Composer, InlineKeyboard } from "grammy/mod.ts";
@@ -44,6 +45,16 @@ async function settingsHandler(ctx: MyContext, chat: number, user: number) {
   if (!res) return await ctx.reply(ctx.t("not-admin"));
   const chatInfo = await ctx.api.getChat(chat);
   if (chatInfo.type == "private") return;
+  // remember chat + verified admin so the web dashboard can list it
+  Promise.all([
+    upsertChat({
+      chatID: chat,
+      title: chatInfo.title,
+      username: "username" in chatInfo ? chatInfo.username : undefined,
+      type: chatInfo.type,
+    }),
+    addAdmin(chat, user),
+  ]).catch((err) => console.warn("Chat registry write failed:", err.message));
   const current_settings = await getSettings(chat);
   const autoappr = current_settings?.status ?? true;
   await ctx.reply(
