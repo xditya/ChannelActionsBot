@@ -51,6 +51,20 @@ export async function addAdmin(chatID: number, userID: number) {
   );
 }
 
+export async function replaceAdmins(chatID: number, userIDs: number[]) {
+  await admins.deleteMany({ chatID });
+  if (userIDs.length > 0) {
+    await admins.insertMany(
+      userIDs.map((userID) => ({ chatID, userID })),
+      { ordered: false },
+    );
+  }
+}
+
+export async function hasAdmins(chatID: number): Promise<boolean> {
+  return (await admins.countDocuments({ chatID }, { limit: 1 })) > 0;
+}
+
 /** Replace the stored admin list of a chat with the live one from Telegram. */
 export async function syncAdmins(api: Api, chatID: number) {
   try {
@@ -58,13 +72,7 @@ export async function syncAdmins(api: Api, chatID: number) {
     const userIDs = members
       .filter((m) => !m.user.is_bot)
       .map((m) => m.user.id);
-    await admins.deleteMany({ chatID });
-    if (userIDs.length > 0) {
-      await admins.insertMany(
-        userIDs.map((userID) => ({ chatID, userID })),
-        { ordered: false },
-      );
-    }
+    await replaceAdmins(chatID, userIDs);
     return userIDs.length;
   } catch (err) {
     console.warn(

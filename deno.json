@@ -19,6 +19,7 @@
   },
   "tasks": {
     "poll": "deno run --allow-net --allow-read --allow-env --allow-sys main.ts --polling",
-    "webhook": "deno run --allow-net --allow-read --allow-env --allow-sys main.ts"
+    "webhook": "deno run --allow-net --allow-read --allow-env --allow-sys main.ts",
+    "backfill": "deno run --allow-net --allow-read --allow-env --allow-sys scripts/backfill_chats.ts"
   }
 }
