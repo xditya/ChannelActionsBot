@@ -303,9 +303,11 @@ export function createWebApp(opts: WebAppOptions): Hono<Env> {
     return c.json(data);
   });
 
-  // static frontend
-  app.use("/*", serveStatic({ root: "./web/app" }));
-  app.get("*", serveStatic({ path: "./web/app/index.html" }));
+  // static frontend; no-cache so UI updates apply on the next load
+  const noCache = (_path: string, c: { header: (k: string, v: string) => void }) =>
+    c.header("Cache-Control", "no-cache");
+  app.use("/*", serveStatic({ root: "./web/app", onFound: noCache }));
+  app.get("*", serveStatic({ path: "./web/app/index.html", onFound: noCache }));
 
   return app;
 }

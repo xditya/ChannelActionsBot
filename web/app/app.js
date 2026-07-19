@@ -289,7 +289,7 @@ async function viewChannels() {
       <p>Add <strong>@${esc(state.botUsername)}</strong> to a channel or group as an admin with the &ldquo;Add members&rdquo; permission. It shows up here right after — or forward any message from the channel to the bot.</p>
       <div class="actions">
         <a class="btn btn-primary" href="${addUrl}" target="_blank" rel="noopener">Add to a channel</a>
-        <button class="btn btn-ghost" id="refresh-btn">I already added it — refresh</button>
+        <button class="btn btn-ghost js-refresh">I already added it — refresh</button>
       </div>
     </div>`;
 
@@ -299,21 +299,28 @@ async function viewChannels() {
         <h1>Your channels</h1>
         <p class="sub">${chats.length ? `${chats.length} chat${chats.length === 1 ? "" : "s"} &middot; changes apply instantly` : "Channels and groups where you and the bot are admins"}</p>
       </div>
-      ${
+      <div class="tools" style="display:flex;gap:8px;align-items:center;">
+        <button class="icon-btn js-refresh" title="Refresh list" aria-label="Refresh list">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>
+        </button>
+        ${
     chats.length
-      ? `<div class="tools"><label class="search">
+      ? `<label class="search">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
           <input type="search" id="chat-search" placeholder="Search channels">
-        </label></div>`
+        </label>`
       : ""
   }
+      </div>
     </div>
     ${chats.length ? `<div class="channel-grid" id="chat-grid">${cards}${addCard}</div>` : empty}`;
 
   $app.innerHTML = layout(body, "channels");
   mountLayoutEvents();
 
-  document.getElementById("refresh-btn")?.addEventListener("click", () => viewChannels());
+  document.querySelectorAll(".js-refresh").forEach((btn) =>
+    btn.addEventListener("click", () => viewChannels())
+  );
   document.getElementById("chat-search")?.addEventListener("input", (e) => {
     const q = e.target.value.toLowerCase();
     document.querySelectorAll("#chat-grid .channel-card:not(.channel-card-add)").forEach((el) => {
