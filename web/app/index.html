@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ChannelActions</title>
+<meta name="description" content="Manage join requests and welcome messages for your Telegram channels and groups.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+  // apply the saved/derived theme before first paint to avoid a flash
+  (function () {
+    var saved = localStorage.getItem("ca_theme");
+    var tg = window.Telegram && window.Telegram.WebApp;
+    var auto = (tg && tg.initData && tg.colorScheme === "dark") ||
+      (!(tg && tg.initData) && matchMedia("(prefers-color-scheme: dark)").matches);
+    document.documentElement.dataset.theme = saved || (auto ? "dark" : "light");
+  })();
+</script>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+<script type="module" src="/app.js"></script>
+</body>
+</html>

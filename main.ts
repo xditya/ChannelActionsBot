@@ -11,7 +11,6 @@ import { MyContext } from "./src/core/types.ts";
 import { sessionsCollection } from "./src/database/sessionsDb.ts";
 import i18n from "./src/core/i18n.ts";
 
-import { serve } from "server";
 import {
   Bot,
   GrammyError,
@@ -22,9 +21,9 @@ import {
 import { autoQuote } from "autoQuote";
 import { hydrate } from "hydrate";
 import { MongoDBAdapter } from "mongo_sessions";
-import { conversations, createConversation } from "conversations";
-import { inputWelcomeMsg } from "./src/helpers/conversationHelpers.ts";
 import { run } from "grammy_runner";
+
+import { createWebApp } from "./src/web/server.ts";
 
 await i18n.loadLocalesDir("locales");
 
@@ -33,7 +32,7 @@ const bot = new Bot<MyContext>(config.BOT_TOKEN);
 await bot.init();
 
 bot.use(hydrate());
-bot.use(autoQuote);
+bot.use(autoQuote());
 bot.use(
   session({
     initial: () => ({}),
@@ -41,8 +40,6 @@ bot.use(
   }),
 );
 bot.use(i18n);
-bot.use(conversations());
-bot.use(createConversation(inputWelcomeMsg));
 bot.use(composer);
 
 bot.catch((err) => {
@@ -58,6 +55,17 @@ bot.catch((err) => {
   }
 });
 
+// install the dashboard as the bot's menu button (mini app)
+if (config.WEBAPP_URL) {
+  bot.api.setChatMenuButton({
+    menu_button: {
+      type: "web_app",
+      text: "Dashboard",
+      web_app: { url: config.WEBAPP_URL },
+    },
+  }).catch((err) => console.warn("Could not set menu button:", err.message));
+}
+
 if (Deno.args[0] == "--polling") {
   console.info(`Started as @${bot.botInfo.username} on long polling.`);
 
@@ -65,32 +73,37 @@ if (Deno.args[0] == "--polling") {
   // basically, on local hosts, for broadcast plugin
   // to work without killing the main bot process.
 
-  const runner = run(bot, undefined, {
-    allowed_updates: ["chat_join_request", "message", "callback_query"],
+  const runner = run(bot, {
+    runner: {
+      fetch: {
+        allowed_updates: [
+          "chat_join_request",
+          "message",
+          "callback_query",
+          "my_chat_member",
+        ],
+      },
+    },
   });
-  const stopRunner = () => runner.isRunning() && runner.stop();
+  const stopRunner = () => {
+    if (runner.isRunning()) runner.stop();
+  };
   Deno.addSignalListener("SIGINT", stopRunner);
-  Deno.addSignalListener(
-    Deno.build.os != "windows" ? "SIGTERM" : "SIGINT",
-    () => stopRunner,
-  );
+  if (Deno.build.os != "windows") {
+    Deno.addSignalListener("SIGTERM", stopRunner);
+  }
+
+  const web = createWebApp({ botUsername: bot.botInfo.username });
+  Deno.serve({ port: config.PORT }, web.fetch);
 } else {
   console.info(`Started as @${bot.botInfo.username} on webhooks.`);
 
-  const handleUpdate = webhookCallback(bot, "std/http");
-  serve(async (req) => {
-    if (req.method === "POST") {
-      const url = new URL(req.url);
-      if (url.pathname.slice(1) === bot.token) {
-        try {
-          return await handleUpdate(req);
-        } catch (err) {
-          console.error(err);
-        }
-      }
-    }
-    return new Response("Welcome!");
+  const web = createWebApp({
+    botUsername: bot.botInfo.username,
+    webhookPath: `/${bot.token}`,
+    webhookHandler: webhookCallback(bot, "std/http"),
   });
+  Deno.serve({ port: config.PORT }, web.fetch);
 }
 
 export default bot;

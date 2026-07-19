@@ -62,6 +62,9 @@ composer.callbackQuery(/select_(.*)/, async (ctx) => {
             can_manage_video_chats: false,
             can_promote_members: false,
             can_change_info: false,
+            can_post_stories: false,
+            can_edit_stories: false,
+            can_delete_stories: false,
           },
           user_administrator_rights: {
             can_invite_users: true,
@@ -72,6 +75,9 @@ composer.callbackQuery(/select_(.*)/, async (ctx) => {
             can_manage_video_chats: false,
             can_promote_members: false,
             can_change_info: false,
+            can_post_stories: false,
+            can_edit_stories: false,
+            can_delete_stories: false,
           },
         },
       )

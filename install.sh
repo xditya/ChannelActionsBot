@@ -37,7 +37,7 @@ else
     path="/root/.deno/bin/deno"
 fi
 
-pm2 start main.ts --interpreter=$path --interpreter-args="run --allow-env --allow-net --allow-read --no-prompt" --name "ChannelActions" -- --polling
+pm2 start main.ts --interpreter=$path --interpreter-args="run --allow-env --allow-net --allow-read --allow-sys --no-prompt" --name "ChannelActions" -- --polling
 
 echo "Bot has started. View logs using 'pm2 logs ChannelActions'"
 echo ""

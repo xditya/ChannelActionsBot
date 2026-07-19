@@ -23,7 +23,7 @@ composer
         .text(ctx.t("usage-help"), "helper")
         .text("Language 🌐", "setLang").row()
         .url(ctx.t("updates"), "https://t.me/BotzHub"),
-      disable_web_page_preview: true,
+      link_preview_options: { is_disabled: true },
     });
     await addUser(ctx.from!.id);
   });
@@ -37,7 +37,7 @@ composer.callbackQuery("mainMenu", async (ctx) => {
         .text(ctx.t("usage-help"), "helper")
         .text("Language 🌐", "setLang").row()
         .url(ctx.t("updates"), "https://t.me/BotzHub"),
-      disable_web_page_preview: true,
+      link_preview_options: { is_disabled: true },
     },
   );
 });

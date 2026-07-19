@@ -1,13 +1,18 @@
 import { MyContext } from "../core/types.ts";
 import { getSettings } from "../database/welcomeDb.ts";
-import helperClass from "../helpers/baseHelpers.ts";
+import { recordJoinAction } from "../database/statsDb.ts";
+import { hasAdmins, syncAdmins, upsertChat } from "../database/chatsDb.ts";
 
-import { Composer } from "grammy/mod.ts";
+import { Composer, GrammyError } from "grammy/mod.ts";
 
 const composer = new Composer<MyContext>();
 
+// Chats that predate the dashboard have no ADMINS mapping. The first join
+// request a chat sees after boot triggers a one-off admin sync, so its
+// admins gain dashboard access without waiting for a my_chat_member event.
+const adminSyncChecked = new Set<number>();
+
 composer.on("chat_join_request", async (ctx) => {
-  if (!ctx.update.chat_join_request) return;
   const update = ctx.update.chat_join_request;
   const settings = await getSettings(update.chat.id);
   let approve_or_not, welcome;
@@ -21,17 +26,9 @@ composer.on("chat_join_request", async (ctx) => {
     welcome = def_welcome_approve;
   } else {
     approve_or_not = settings.status;
-    if (approve_or_not == true) {
-      welcome = settings.welcome ?? def_welcome_approve;
-      if (welcome == "") welcome = def_welcome_approve;
-    } else {
-      welcome = settings.welcome ?? def_welcome_decline;
-      if (welcome == "") welcome = def_welcome_decline;
-    }
+    welcome = settings.welcome ||
+      (approve_or_not ? def_welcome_approve : def_welcome_decline);
   }
-
-  // increment total users seen
-  helperClass.TOTAL_USERS_SEEN += 1;
 
   // try to approve
   try {
@@ -40,20 +37,42 @@ composer.on("chat_join_request", async (ctx) => {
     } else {
       await ctx.api.declineChatJoinRequest(update.chat.id, update.from.id);
     }
+    // aggregate counters + chat title cache; failures must not break handling
+    Promise.all([
+      recordJoinAction(update.chat.id, approve_or_not),
+      upsertChat({
+        chatID: update.chat.id,
+        title: update.chat.title,
+        username: "username" in update.chat ? update.chat.username : undefined,
+        type: update.chat.type,
+      }),
+    ]).catch((err) => console.warn("Stats write failed:", err.message));
+    if (!adminSyncChecked.has(update.chat.id)) {
+      adminSyncChecked.add(update.chat.id);
+      hasAdmins(update.chat.id)
+        .then((known) => known ? null : syncAdmins(ctx.api, update.chat.id))
+        .catch((err) => console.warn("Admin sync failed:", err.message));
+    }
   } catch (error) {
-    if (error.error_code == 400 || error.error_code == 403) return;
-    console.log("Error while approving user: ", error.message);
+    if (
+      error instanceof GrammyError &&
+      (error.error_code == 400 || error.error_code == 403)
+    ) {
+      return;
+    }
+    console.log(
+      "Error while approving user: ",
+      error instanceof Error ? error.message : error,
+    );
     return;
   }
 
   welcome += "\n\nSend /start to know more!";
-  welcome = welcome.replace("{name}", update.from.first_name).replace(
-    "{chat}",
-    update.chat.title,
-  ).replace("$name", update.from.first_name).replace(
-    "$chat",
-    update.chat.title,
-  );
+  welcome = welcome
+    .replaceAll("{name}", update.from.first_name)
+    .replaceAll("{chat}", update.chat.title)
+    .replaceAll("$name", update.from.first_name)
+    .replaceAll("$chat", update.chat.title);
 
   // try to send a message
   try {
@@ -62,8 +81,11 @@ composer.on("chat_join_request", async (ctx) => {
       welcome,
     );
   } catch (error) {
-    if (error.error_code == 403) return;
-    console.log("Error while sending a message: ", error.message);
+    if (error instanceof GrammyError && error.error_code == 403) return;
+    console.log(
+      "Error while sending a message: ",
+      error instanceof Error ? error.message : error,
+    );
     return;
   }
 });

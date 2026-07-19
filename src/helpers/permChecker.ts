@@ -1,5 +1,7 @@
 import { MyContext } from "../core/types.ts";
 
+import { GrammyError } from "grammy/mod.ts";
+
 export async function get_perms(
   ctx: MyContext,
   chat: number,
@@ -7,11 +9,9 @@ export async function get_perms(
 ) {
   try {
     const stats = await ctx.api.getChatMember(chat, user);
-    if (stats.status == "administrator" || stats.status == "creator") {
-      return true;
-    } else return false;
+    return stats.status == "administrator" || stats.status == "creator";
   } catch (error) {
-    if (error.error_code == 400) return null;
+    if (error instanceof GrammyError && error.error_code == 400) return null;
     console.error(error);
     return null;
   }
