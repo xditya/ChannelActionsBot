@@ -125,11 +125,16 @@ const sessionKey = await hmacSha256(
 );
 
 function b64urlEncode(s: string): string {
-  return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  // btoa only handles Latin1; Telegram names can contain any unicode
+  const bytes = enc.encode(s);
+  let bin = "";
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
 function b64urlDecode(s: string): string {
-  return atob(s.replace(/-/g, "+").replace(/_/g, "/"));
+  const bin = atob(s.replace(/-/g, "+").replace(/_/g, "/"));
+  return new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
 }
 
 export async function issueSessionToken(user: AuthedUser): Promise<string> {
