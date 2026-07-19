@@ -1,7 +1,22 @@
 {
-  "importMap": "./import_map.json",
+  "imports": {
+    "dotenv": "jsr:@std/dotenv@^0.225.0",
+    "grammy/": "https://deno.land/x/grammy@v1.45.1/",
+    "mongodb": "npm:mongodb@^6.20.0",
+    "mongo_sessions": "npm:@grammyjs/storage-mongodb@^2.6.0",
+    "autoQuote": "https://deno.land/x/grammy_autoquote@v2.0.9/mod.ts",
+    "hydrate": "https://deno.land/x/grammy_hydrate@v1.7.0/mod.ts",
+    "i18n": "https://deno.land/x/grammy_i18n@v1.1.0/mod.ts",
+    "language": "https://deno.land/x/language@v0.1.0/mod.ts",
+    "grammy_runner": "https://deno.land/x/grammy_runner@v2.0.3/mod.ts",
+    "$env": "./env.ts",
+    "https://lib.deno.dev/x/grammy@v1/mod.ts": "https://deno.land/x/grammy@v1.45.1/mod.ts",
+    "https://lib.deno.dev/x/grammy@v1/types.ts": "https://deno.land/x/grammy@v1.45.1/types.ts",
+    "https://lib.deno.dev/x/grammy@1.x/mod.ts": "https://deno.land/x/grammy@v1.45.1/mod.ts",
+    "https://cdn.skypack.dev/debug@4.4.3": "npm:debug@4.4.3"
+  },
   "tasks": {
-    "poll": "deno run --allow-net --allow-read --allow-env main.ts --polling",
-    "webhook": "deno run --allow-net --allow-read --allow-env main.ts"
+    "poll": "deno run --allow-net --allow-read --allow-env --allow-sys main.ts --polling",
+    "webhook": "deno run --allow-net --allow-read --allow-env --allow-sys main.ts"
   }
 }

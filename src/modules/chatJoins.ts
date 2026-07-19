@@ -2,12 +2,11 @@ import { MyContext } from "../core/types.ts";
 import { getSettings } from "../database/welcomeDb.ts";
 import helperClass from "../helpers/baseHelpers.ts";
 
-import { Composer } from "grammy/mod.ts";
+import { Composer, GrammyError } from "grammy/mod.ts";
 
 const composer = new Composer<MyContext>();
 
 composer.on("chat_join_request", async (ctx) => {
-  if (!ctx.update.chat_join_request) return;
   const update = ctx.update.chat_join_request;
   const settings = await getSettings(update.chat.id);
   let approve_or_not, welcome;
@@ -21,13 +20,8 @@ composer.on("chat_join_request", async (ctx) => {
     welcome = def_welcome_approve;
   } else {
     approve_or_not = settings.status;
-    if (approve_or_not == true) {
-      welcome = settings.welcome ?? def_welcome_approve;
-      if (welcome == "") welcome = def_welcome_approve;
-    } else {
-      welcome = settings.welcome ?? def_welcome_decline;
-      if (welcome == "") welcome = def_welcome_decline;
-    }
+    welcome = settings.welcome ||
+      (approve_or_not ? def_welcome_approve : def_welcome_decline);
   }
 
   // increment total users seen
@@ -41,19 +35,25 @@ composer.on("chat_join_request", async (ctx) => {
       await ctx.api.declineChatJoinRequest(update.chat.id, update.from.id);
     }
   } catch (error) {
-    if (error.error_code == 400 || error.error_code == 403) return;
-    console.log("Error while approving user: ", error.message);
+    if (
+      error instanceof GrammyError &&
+      (error.error_code == 400 || error.error_code == 403)
+    ) {
+      return;
+    }
+    console.log(
+      "Error while approving user: ",
+      error instanceof Error ? error.message : error,
+    );
     return;
   }
 
   welcome += "\n\nSend /start to know more!";
-  welcome = welcome.replace("{name}", update.from.first_name).replace(
-    "{chat}",
-    update.chat.title,
-  ).replace("$name", update.from.first_name).replace(
-    "$chat",
-    update.chat.title,
-  );
+  welcome = welcome
+    .replaceAll("{name}", update.from.first_name)
+    .replaceAll("{chat}", update.chat.title)
+    .replaceAll("$name", update.from.first_name)
+    .replaceAll("$chat", update.chat.title);
 
   // try to send a message
   try {
@@ -62,8 +62,11 @@ composer.on("chat_join_request", async (ctx) => {
       welcome,
     );
   } catch (error) {
-    if (error.error_code == 403) return;
-    console.log("Error while sending a message: ", error.message);
+    if (error instanceof GrammyError && error.error_code == 403) return;
+    console.log(
+      "Error while sending a message: ",
+      error instanceof Error ? error.message : error,
+    );
     return;
   }
 });

@@ -11,7 +11,6 @@ import { MyContext } from "./src/core/types.ts";
 import { sessionsCollection } from "./src/database/sessionsDb.ts";
 import i18n from "./src/core/i18n.ts";
 
-import { serve } from "server";
 import {
   Bot,
   GrammyError,
@@ -22,8 +21,6 @@ import {
 import { autoQuote } from "autoQuote";
 import { hydrate } from "hydrate";
 import { MongoDBAdapter } from "mongo_sessions";
-import { conversations, createConversation } from "conversations";
-import { inputWelcomeMsg } from "./src/helpers/conversationHelpers.ts";
 import { run } from "grammy_runner";
 
 await i18n.loadLocalesDir("locales");
@@ -33,7 +30,7 @@ const bot = new Bot<MyContext>(config.BOT_TOKEN);
 await bot.init();
 
 bot.use(hydrate());
-bot.use(autoQuote);
+bot.use(autoQuote());
 bot.use(
   session({
     initial: () => ({}),
@@ -41,8 +38,6 @@ bot.use(
   }),
 );
 bot.use(i18n);
-bot.use(conversations());
-bot.use(createConversation(inputWelcomeMsg));
 bot.use(composer);
 
 bot.catch((err) => {
@@ -65,20 +60,25 @@ if (Deno.args[0] == "--polling") {
   // basically, on local hosts, for broadcast plugin
   // to work without killing the main bot process.
 
-  const runner = run(bot, undefined, {
-    allowed_updates: ["chat_join_request", "message", "callback_query"],
+  const runner = run(bot, {
+    runner: {
+      fetch: {
+        allowed_updates: ["chat_join_request", "message", "callback_query"],
+      },
+    },
   });
-  const stopRunner = () => runner.isRunning() && runner.stop();
+  const stopRunner = () => {
+    if (runner.isRunning()) runner.stop();
+  };
   Deno.addSignalListener("SIGINT", stopRunner);
-  Deno.addSignalListener(
-    Deno.build.os != "windows" ? "SIGTERM" : "SIGINT",
-    () => stopRunner,
-  );
+  if (Deno.build.os != "windows") {
+    Deno.addSignalListener("SIGTERM", stopRunner);
+  }
 } else {
   console.info(`Started as @${bot.botInfo.username} on webhooks.`);
 
   const handleUpdate = webhookCallback(bot, "std/http");
-  serve(async (req) => {
+  Deno.serve(async (req) => {
     if (req.method === "POST") {
       const url = new URL(req.url);
       if (url.pathname.slice(1) === bot.token) {
@@ -86,6 +86,7 @@ if (Deno.args[0] == "--polling") {
           return await handleUpdate(req);
         } catch (err) {
           console.error(err);
+          return new Response(null, { status: 500 });
         }
       }
     }
