@@ -1,4 +1,4 @@
 .env
 *.test.ts
 deno.lock
-web/mockups/shots/
+web/mockups/
