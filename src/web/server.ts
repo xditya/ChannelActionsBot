@@ -18,6 +18,7 @@ import {
 import { countUsers } from "../database/usersDb.ts";
 import { countSettings } from "../database/welcomeDb.ts";
 import {
+  getChatDailyStats,
   getDailyStats,
   getTopChats,
   getUsersSeen,
@@ -37,6 +38,53 @@ const adminCache = new Map<string, { ok: boolean; at: number }>();
 const ADMIN_CACHE_MS = 5 * 60 * 1000;
 let statsCache: { data: unknown; at: number } | null = null;
 const STATS_CACHE_MS = 60 * 1000;
+
+const memberCountCache = new Map<number, { count: number; at: number }>();
+const MEMBER_COUNT_CACHE_MS = 5 * 60 * 1000;
+
+async function getMemberCount(chatID: number): Promise<number | null> {
+  const hit = memberCountCache.get(chatID);
+  if (hit && Date.now() - hit.at < MEMBER_COUNT_CACHE_MS) return hit.count;
+  try {
+    const count = await api.getChatMemberCount(chatID);
+    memberCountCache.set(chatID, { count, at: Date.now() });
+    return count;
+  } catch {
+    return null;
+  }
+}
+
+/** Resolve chat metadata from the registry, falling back to Telegram. */
+async function resolveChat(chatID: number) {
+  const registered = await getChat(chatID);
+  if (registered) {
+    return {
+      chatID,
+      title: registered.title,
+      username: registered.username ?? null,
+      type: registered.type,
+    };
+  }
+  try {
+    const info = await api.getChat(chatID);
+    if (info.type === "private") return null;
+    const chat = {
+      chatID,
+      title: info.title,
+      username: "username" in info ? info.username ?? null : null,
+      type: info.type,
+    };
+    await upsertChat({
+      chatID,
+      title: chat.title,
+      username: chat.username ?? undefined,
+      type: chat.type,
+    });
+    return chat;
+  } catch {
+    return null;
+  }
+}
 
 async function isChatAdmin(chatID: number, userID: number): Promise<boolean> {
   const key = `${chatID}:${userID}`;
@@ -134,32 +182,43 @@ export function createWebApp(opts: WebAppOptions): Hono<Env> {
     if (!(await isChatAdmin(chatID, user.id))) {
       return c.json({ error: "You are not an admin of this chat, or the bot was removed from it." }, 403);
     }
-    const [settings, registered] = await Promise.all([
+    const [settings, chat] = await Promise.all([
       getSettings(chatID),
-      getChat(chatID),
+      resolveChat(chatID),
     ]);
-    let title = registered?.title ?? "";
-    let username = registered?.username ?? null;
-    let type = registered?.type ?? "channel";
-    if (!registered) {
-      try {
-        const info = await api.getChat(chatID);
-        if (info.type === "private") return c.json({ error: "Not a channel or group" }, 400);
-        title = info.title;
-        username = "username" in info ? info.username ?? null : null;
-        type = info.type;
-        await upsertChat({ chatID, title, username: username ?? undefined, type });
-      } catch {
-        return c.json({ error: "Chat not found" }, 404);
-      }
-    }
+    if (!chat) return c.json({ error: "Chat not found" }, 404);
     await addAdmin(chatID, user.id);
     return c.json({
-      chat: { chatID, title, username, type },
+      chat,
       settings: {
         status: settings?.status ?? true,
         welcome: settings?.welcome ?? "",
       },
+    });
+  });
+
+  app.get("/api/chats/:id/stats", async (c) => {
+    const chatID = Number(c.req.param("id"));
+    if (!Number.isSafeInteger(chatID)) return c.json({ error: "Bad chat id" }, 400);
+    const user = c.get("user");
+    if (!(await isChatAdmin(chatID, user.id))) {
+      return c.json({ error: "You are not an admin of this chat, or the bot was removed from it." }, 403);
+    }
+    const [chat, daily, memberCount] = await Promise.all([
+      resolveChat(chatID),
+      getChatDailyStats(chatID, 30),
+      getMemberCount(chatID),
+    ]);
+    if (!chat) return c.json({ error: "Chat not found" }, 404);
+    await addAdmin(chatID, user.id);
+    return c.json({
+      chat,
+      memberCount,
+      daily: daily.map((d) => ({
+        date: d.date,
+        approved: d.approved ?? 0,
+        declined: d.declined ?? 0,
+      })),
     });
   });
 

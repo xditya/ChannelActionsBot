@@ -374,11 +374,17 @@ async function viewChat(chatID) {
         <h1>${esc(chat.title)}</h1>
         <p class="meta">${chat.username ? `@${esc(chat.username)} &middot; ` : ""}${chat.type === "channel" ? "Channel" : "Group"} &middot; <span class="mono">${chat.chatID}</span></p>
       </div>
-      ${
+      <div class="tools" style="display:flex;gap:8px;">
+        <a class="btn btn-ghost" href="#/chat/${chat.chatID}/stats">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 20v-8M12 20V5M19 20v-11"/></svg>
+          Stats
+        </a>
+        ${
     chat.username
-      ? `<div class="tools"><a class="btn btn-ghost" href="https://t.me/${esc(chat.username)}" target="_blank" rel="noopener">${planeSvg(15)} Open in Telegram</a></div>`
+      ? `<a class="btn btn-ghost" href="https://t.me/${esc(chat.username)}" target="_blank" rel="noopener">${planeSvg(15)} Open in Telegram</a>`
       : ""
   }
+      </div>
     </div>
     <div class="settings-layout">
       <div class="settings-col">
@@ -503,7 +509,112 @@ async function viewChat(chatID) {
   refresh();
 }
 
+/* ------------------------------------------------------ chat stats view */
+
+async function viewChatStats(chatID) {
+  $app.innerHTML = layout(`<p class="center-note">Loading stats…</p>`, "channels");
+  mountLayoutEvents();
+  if (inTelegram && tg.BackButton) {
+    tg.BackButton.show();
+    tg.BackButton.onClick(() => (location.hash = `#/chat/${chatID}`));
+  }
+
+  let data;
+  try {
+    data = await api(`/api/chats/${chatID}/stats`);
+  } catch (err) {
+    if (err.status === 401) return route();
+    $app.innerHTML = layout(
+      `<a class="back-link" href="#/channels">&larr; Channels</a>
+       <p class="center-note">${esc(err.message)}</p>`,
+      "channels",
+    );
+    mountLayoutEvents();
+    return;
+  }
+
+  const { chat, memberCount } = data;
+  document.title = `${chat.title} stats — ChannelActions`;
+  const daily = buildDailySeries(data.daily, 30);
+  const sum = (arr, key) => arr.reduce((total, d) => total + d[key], 0);
+  const approved30 = sum(daily, "approved");
+  const declined30 = sum(daily, "declined");
+  const total30 = approved30 + declined30;
+  const rate = total30 ? ((approved30 / total30) * 100).toFixed(1) + "%" : "—";
+  const last7 = daily.slice(-7);
+  const prev7 = daily.slice(-14, -7);
+  const total7 = sum(last7, "approved") + sum(last7, "declined");
+  const prevTotal7 = sum(prev7, "approved") + sum(prev7, "declined");
+  let trend = "";
+  if (prevTotal7 > 0) {
+    const pct = Math.round(((total7 - prevTotal7) / prevTotal7) * 100);
+    trend = pct >= 0
+      ? `<span style="color:var(--positive-text);font-weight:600;">&#8593; ${pct}%</span> vs previous week`
+      : `<span style="font-weight:600;">&#8595; ${Math.abs(pct)}%</span> vs previous week`;
+  } else if (total7 > 0) {
+    trend = "no data the week before";
+  } else {
+    trend = "join requests";
+  }
+
+  const body = `
+    <a class="back-link" href="#/chat/${chat.chatID}">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+      Settings
+    </a>
+    <div class="channel-head">
+      <span class="avatar ${avatarClass(chat.chatID)}">${initials(chat.title)}</span>
+      <div>
+        <h1>${esc(chat.title)}</h1>
+        <p class="meta">${chat.username ? `@${esc(chat.username)} &middot; ` : ""}${chat.type === "channel" ? "Channel" : "Group"} &middot; <span class="mono">${chat.chatID}</span></p>
+      </div>
+      ${
+    chat.username
+      ? `<div class="tools"><a class="btn btn-ghost" href="https://t.me/${esc(chat.username)}" target="_blank" rel="noopener">${planeSvg(15)} Open in Telegram</a></div>`
+      : ""
+  }
+    </div>
+    <div class="kpi-row">
+      <div class="card stat-tile"><div class="label">Members</div><div class="value">${memberCount == null ? "—" : fmt(memberCount)}</div><div class="delta">right now</div></div>
+      <div class="card stat-tile"><div class="label">Requests &middot; 30 days</div><div class="value">${fmt(total30)}</div><div class="delta">${fmt(approved30)} approved &middot; ${fmt(declined30)} declined</div></div>
+      <div class="card stat-tile"><div class="label">Approval rate</div><div class="value">${rate}</div><div class="delta">of requests approved</div></div>
+      <div class="card stat-tile"><div class="label">Last 7 days</div><div class="value">${fmt(total7)}</div><div class="delta">${trend}</div></div>
+    </div>
+    <section class="card chart-card">
+      <div class="chart-head">
+        <h2>Join requests</h2>
+        <span class="sub">Last 30 days</span>
+        <div class="legend">
+          <span class="key"><span class="swatch" style="background:var(--chart-1)"></span>Approved</span>
+          <span class="key"><span class="swatch" style="background:var(--chart-2)"></span>Declined</span>
+        </div>
+      </div>
+      <div class="chart-wrap" id="chart-wrap"></div>
+    </section>
+    <p class="sub" style="color:var(--ink-3);font-size:12.5px;">Join-request data is kept for 30 days. Counting started when this chat first saw a request after the dashboard update.</p>`;
+
+  $app.innerHTML = layout(body, "channels");
+  mountLayoutEvents();
+  renderChart(daily);
+}
+
 /* ----------------------------------------------------------- stats view */
+
+function buildDailySeries(daily, days) {
+  const byDate = new Map(daily.map((d) => [d.date, d]));
+  const series = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const date = new Date(Date.now() - i * 86400000);
+    const key = date.toISOString().slice(0, 10);
+    const hit = byDate.get(key);
+    series.push({
+      label: date.toLocaleDateString("en-US", { day: "numeric", month: "short" }),
+      approved: hit?.approved ?? 0,
+      declined: hit?.declined ?? 0,
+    });
+  }
+  return series;
+}
 
 function niceCeil(n) {
   if (n <= 0) return 10;
@@ -613,19 +724,7 @@ async function viewStats() {
     return;
   }
 
-  // fill a continuous 14-day series
-  const byDate = new Map(data.daily.map((d) => [d.date, d]));
-  const daily = [];
-  for (let i = 13; i >= 0; i--) {
-    const date = new Date(Date.now() - i * 86400000);
-    const key = date.toISOString().slice(0, 10);
-    const hit = byDate.get(key);
-    daily.push({
-      label: date.toLocaleDateString("en-US", { day: "numeric", month: "short" }),
-      approved: hit?.approved ?? 0,
-      declined: hit?.declined ?? 0,
-    });
-  }
+  const daily = buildDailySeries(data.daily, 14);
   const approved14 = daily.reduce((sum, d) => sum + d.approved, 0);
   const total14 = daily.reduce((sum, d) => sum + d.approved + d.declined, 0);
   const rate = total14 ? ((approved14 / total14) * 100).toFixed(1) + "%" : "—";
@@ -697,6 +796,8 @@ async function route() {
     return viewLogin();
   }
   if (hash.startsWith("#/chat/")) {
+    const statsMatch = hash.match(/^#\/chat\/(-?\d+)\/stats$/);
+    if (statsMatch) return viewChatStats(Number(statsMatch[1]));
     const id = Number(hash.slice(7));
     if (Number.isSafeInteger(id)) return viewChat(id);
   }

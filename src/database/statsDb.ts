@@ -59,6 +59,15 @@ export async function getDailyStats(days: number) {
     .toArray();
 }
 
+export async function getChatDailyStats(chatID: number, days: number) {
+  const since = new Date(Date.now() - (days - 1) * 24 * 60 * 60 * 1000)
+    .toISOString().slice(0, 10);
+  return await chatStatsDaily
+    .find({ chatID, date: { $gte: since } })
+    .sort({ date: 1 })
+    .toArray();
+}
+
 export async function getTopChats(days: number, limit: number) {
   const since = new Date(Date.now() - (days - 1) * 24 * 60 * 60 * 1000)
     .toISOString().slice(0, 10);
